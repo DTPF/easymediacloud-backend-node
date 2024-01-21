@@ -1,0 +1,8 @@
+node_modules
+.env.development
+.env.production
+client_old
+src_old
+dist
+uploads/avatar/*
+# media/*

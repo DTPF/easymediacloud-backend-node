@@ -8,8 +8,11 @@ import { createLicenseApiKeyJWT } from "../../../services/jwt";
 import jwt from "jsonwebtoken";
 import i18next from "i18next";
 import { ServerConfig } from "../../../config/config";
-import { ILicense } from "../../../interfaces/license.interface";
+import { IApiKey, ILicense } from "../../../interfaces/license.interface";
 import { convertBytes } from "../../../utils/getFolderSize";
+import SuscriptionModel from "../../suscriptions/models/suscription.model";
+import { B500MB, FREE } from "../../suscriptions/suscriptionsConstants";
+import moment from "moment";
 const config: ServerConfig = require('../../../config/config')
 const t = i18next.t
 const fs = require("fs-extra")
@@ -20,7 +23,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 		return res.status(404).send({ status: licenseKey.projectRequired, message: t('data-required') })
 	}
 	// Find user licenses
-	const findUserLicenses = await LicenseModel.find({ userId: req.user._id }).lean().exec()
+	const findUserLicenses: ILicense[] = await LicenseModel.find({ userId: req.user._id }).lean().exec()
 	// Check if exists a license with the same project name
 	const licenseProjectExists = await findUserLicenses.find((license: ILicense) => license.project === project)
 	if (licenseProjectExists) {
@@ -31,7 +34,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 	if (findUserLicenses.length === 0) {
 		fs.mkdir(`${mediaFolderPath}/${mainFolderName}`, async function (err: any) {
 			if (err) {
-				return res.status(404).send({ status: licenseKey.createDirectoryError, message: t('licenses_create-directory-error') })
+				console.log('Main directory error');
 			}
 			console.log('Main directory created');
 		})
@@ -51,7 +54,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 				userId: req.user._id,
 				project,
 				apiKey,
-				enabled: false,
+				enabled: true,
 				online: true
 			})
 			// Save license
@@ -68,8 +71,41 @@ export async function createLicense(req: IRequestUser, res: Response) {
 			licenseSaved.enabled = undefined
 			licenseSaved.userId = undefined
 			licenseSaved.apiKey = undefined
+			// Create suscription
+			try {
+				const newSuscription = new SuscriptionModel({
+					user: req.user._id,
+					license: licenseSaved._id,
+					type: FREE,
+					price: 0,
+					currency: '€',
+					maxSize: B500MB,
+					expire: moment().add(1, 'year'),
+					enabled: true
+				})
+				const suscriptionSaved = await newSuscription.save()
+				if (!suscriptionSaved) {
+					return res.status(404).send({ status: licenseKey.createSuscriptionError, message: t('licenses_create-suscription-error') })
+				}
+				// Update license suscription
+				const updateLicense = await LicenseModel.findOneAndUpdate({ _id: licenseSaved._id }, { suscription: suscriptionSaved._id }, { new: true }).populate('suscription').lean().exec()
+				delete updateLicense.__v
+				delete updateLicense.apiKey
+				delete updateLicense.user
+				delete updateLicense.suscription._id
+				delete updateLicense.suscription.__v
+				delete updateLicense.suscription.user
+				delete updateLicense.suscription.license
+				delete updateLicense.suscription.expire
+				updateLicense.suscription.maxSize = convertBytes(updateLicense.suscription.maxSize)
+				// Return license
+				return res.status(200).send({ status: licenseKey.createdSuccess, message: t('licenses_created-success'), license: updateLicense })
+			} catch (error) {
+				if (error) {
+					return res.status(404).send({ status: licenseKey.createSuscriptionError, message: t('licenses_create-suscription-error'), error: error })
+				}
+			}
 			// Return license
-			return res.status(200).send({ status: licenseKey.createdSuccess, license: licenseSaved, message: t('licenses_created-success') })
 		} catch (err: any) {
 			if (err.code === 11000) {
 				return res.status(500).send({ status: licenseKey.repeatedProject, message: t('project-repeated'), error: err })
@@ -83,23 +119,29 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 	const { licenseId } = req.params
 	try {
 		// Find license
-		const findLicense = req.user.licenses.find((license: ILicense) => license._id == licenseId)
-		if (!findLicense?.apiKey) {
+		const findLicense: ILicense = await LicenseModel.findOne({ _id: licenseId }).populate('suscription').lean().exec()
+		if (!findLicense || !findLicense?.apiKey) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 		}
 		// Decrypt license api key
-		const decryptedLicense = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as { project: string, apiKey: string, email: string };
-		if (!decryptedLicense) {
+		const decryptedApiKey: IApiKey = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as IApiKey
+		if (!decryptedApiKey) {
 			return res.status(404).send({ status: licenseKey.getLicenseError, message: t('licenses_get-license_error') })
 		}
+		delete findLicense.apiKey
+		delete findLicense.__v
+		delete findLicense.suscription._id
+		delete findLicense.suscription.__v
+		delete findLicense.suscription.user
+		delete findLicense.suscription.license
+		delete findLicense.suscription.expire
+		findLicense.sizeT = convertBytes(findLicense.size as number)
+		findLicense.suscription.maxSizeT = convertBytes(findLicense.suscription.maxSize as number)
+		// Return license
 		return res.status(200).send({
 			status: licenseKey.getLicenseSuccess,
 			message: t('licenses_get-license_success'),
-			license: {
-				project: decryptedLicense.project,
-				enabled: findLicense.enabled,
-				size: findLicense.size,
-			}
+			license: { ...findLicense, project: decryptedApiKey.project }
 		})
 	} catch (err) {
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
@@ -109,14 +151,13 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 export async function getApiKey(req: IRequestUser, res: Response) {
 	const { licenseId } = req.params
 	try {
-		const findLicense = req.user.licenses.find((license: ILicense) => license._id == licenseId)
-		// Return license api key if it belongs to the user
+		const findLicense: ILicense | undefined = req.user.licenses.find((license: ILicense) => license._id == licenseId)
 		if (!findLicense?.apiKey || findLicense.userId?.toString() !== req.user._id.toString()) {
-			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
+			return res.status(404).send({ status: licenseKey.apiKeyNotFound, message: t('api-key-not-found') })
 		}
 		return res.status(200).send({
-			status: licenseKey.getLicenseSuccess,
-			message: t('licenses_get-license_success'),
+			status: licenseKey.getApiKeySuccess,
+			message: t('licenses_get-api-key_success'),
 			apiKey: findLicense.apiKey,
 		})
 	} catch (err) {
@@ -126,17 +167,19 @@ export async function getApiKey(req: IRequestUser, res: Response) {
 
 export async function getMyLicenses(req: IRequestUser, res: Response) {
 	try {
-		const findUser = await UserModel.findOne({ auth0Id: req.user.auth0Id }).populate('licenses').lean().exec()
-		if (!findUser) {
-			return res.status(404).send({ status: licenseKey.userLicenseError, message: t('user-not-found') })
-		}
-		findUser.licenses.forEach((license: any) => {
+		const findLicenses: ILicense[] = await LicenseModel.find({ userId: req.user._id.toString() }).populate('suscription').lean().exec()
+		findLicenses.forEach((license: ILicense) => {
 			delete license.__v
 			delete license.userId
 			delete license.apiKey
-			license.size = convertBytes(license.size)
+			license.sizeT = convertBytes(license.size as number)
+			delete license.suscription.__v
+			delete license.suscription.user
+			delete license.suscription.license
+			delete license.suscription.expire
+			license.suscription.maxSizeT = convertBytes(license.suscription.maxSize as number)
 		})
-		return res.status(200).send({ status: licenseKey.getLicenseSuccess, message: t('licenses_get-my-licenses_success'), licenses: findUser.licenses })
+		return res.status(200).send({ status: licenseKey.getLicenseSuccess, message: t('licenses_get-my-licenses_success'), licenses: findLicenses })
 	} catch (err) {
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
 	}
@@ -151,7 +194,7 @@ export async function enableLicense(req: IRequestUser, res: Response) {
 		return res.status(404).send({ status: licenseKey.enabledRequired, message: t('licenses_enabled-required') })
 	}
 	try {
-		const findLicense = await LicenseModel.findOneAndUpdate({ _id: licenseId }, { enabled: enabled }, { new: true }).lean().exec()
+		const findLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseId }, { enabled: enabled }, { new: true }).lean().exec()
 		if (!findLicense) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 		}
@@ -170,7 +213,7 @@ export async function updateLicenseProject(req: IRequestUser, res: Response) {
 		return res.status(404).send({ status: licenseKey.projectRequired, message: t('data-required') })
 	}
 
-	const findUserLicenses = await LicenseModel.find({ userId: req.user._id }).lean().exec()
+	const findUserLicenses: ILicense[] = await LicenseModel.find({ userId: req.user._id }).lean().exec()
 	if (findUserLicenses.length === 0) {
 		return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 	}

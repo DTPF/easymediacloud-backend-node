@@ -4,10 +4,11 @@ const LicenseSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User' },
   project: { type: String, required: true },
   apiKey: { type: String, required: true, unique: true },
-  enabled: { type: Boolean, required: true },
+  enabled: { type: Boolean, required: true, default: true },
   online: { type: Boolean, required: true },
   size: { type: Number, default: 0 },
   totalFiles: { type: Number, default: 0 },
+  suscription: { type: Schema.Types.ObjectId, ref: 'Suscription' },
 }, {
   timestamps: true
 })

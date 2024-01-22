@@ -13,6 +13,7 @@ import { IMedia } from "../../../interfaces/media.interface";
 import { convertBytes } from "../../../utils/getFolderSize";
 import moment from "moment";
 import SuscriptionModel from "../../suscriptions/models/suscription.model";
+import { LICENSE_POPULATE, SUSCRIPTION_POPULATE } from "../../modelsConstants";
 const config: ServerConfig = require('../../../config/config')
 const fs = require("fs-extra")
 const path = require("path")
@@ -30,7 +31,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     }
     const { project, nickname } = decodedApiKeyToken
     // Find license
-    const findLicense: ILicense | any = await LicenseModel.findOne({ project: project }).populate('suscription').lean().exec()
+    const findLicense: ILicense | any = await LicenseModel.findOne({ project: project }).populate(SUSCRIPTION_POPULATE).lean().exec()
     if (!findLicense || !decodedApiKeyToken.apiKey) {
       return response.status(404).send({ status: licenseKey.licenseNotFound, message: t('license-not-found') })
     }
@@ -100,7 +101,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
 export async function getMedia(req: Request, res: Response) {
   const { project, folders, media } = req.params
   // Find media
-  const findMedia: IMedia = await MediaModel.findOne({ fileName: media }).populate('license').lean().exec()
+  const findMedia: IMedia = await MediaModel.findOne({ fileName: media }).populate(LICENSE_POPULATE).lean().exec()
   if (!findMedia) {
     return res.status(405).send({ status: mediaKey.mediaNotExists, message: t('media-not-exists') })
   }

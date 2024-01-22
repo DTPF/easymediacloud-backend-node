@@ -1,8 +1,9 @@
+import { LICENSE_MODEL, SUSCRIPTION_MODEL, USER_MODEL } from "../../modelsConstants";
 const { Schema, model } = require('mongoose');
 
 const SuscriptionSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  license: { type: Schema.Types.ObjectId, ref: 'License', required: true },
+  user: { type: Schema.Types.ObjectId, ref: USER_MODEL, required: true },
+  license: { type: Schema.Types.ObjectId, ref: LICENSE_MODEL, required: true },
   type: { type: String, required: true },
   price: { type: Number, default: 0, required: true },
   currency: { type: String, required: true },
@@ -14,6 +15,5 @@ const SuscriptionSchema = new Schema({
   timestamps: true
 })
 
-const SuscriptionModel = model('Suscription', SuscriptionSchema);
-
+const SuscriptionModel = model(SUSCRIPTION_MODEL, SuscriptionSchema);
 export default SuscriptionModel;

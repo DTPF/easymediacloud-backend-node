@@ -14,6 +14,7 @@ import SuscriptionModel from "../../suscriptions/models/suscription.model";
 import { B500MB, FREE } from "../../suscriptions/suscriptionsConstants";
 import moment from "moment";
 import { ISuscription } from "../../../interfaces/suscription.interface";
+import { SUSCRIPTION_POPULATE } from "../../modelsConstants";
 const config: ServerConfig = require('../../../config/config')
 const t = i18next.t
 const fs = require("fs-extra")
@@ -94,7 +95,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 					return res.status(404).send({ status: licenseKey.createSuscriptionError, message: t('licenses_create-suscription-error') })
 				}
 				// Update license suscription
-				const updateLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseSaved._id }, { suscription: suscriptionSaved._id }, { new: true }).populate('suscription').lean().exec()
+				const updateLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseSaved._id }, { suscription: suscriptionSaved._id }, { new: true }).populate(SUSCRIPTION_POPULATE).lean().exec()
 				delete updateLicense.__v
 				delete updateLicense.apiKey
 				delete updateLicense.userId
@@ -124,7 +125,7 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 	const { licenseId } = req.params
 	try {
 		// Find license
-		const findLicense: ILicense = await LicenseModel.findOne({ _id: licenseId }).populate('suscription').lean().exec()
+		const findLicense: ILicense = await LicenseModel.findOne({ _id: licenseId }).populate(SUSCRIPTION_POPULATE).lean().exec()
 		if (!findLicense || !findLicense?.apiKey) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 		}
@@ -170,7 +171,7 @@ export async function getApiKey(req: IRequestUser, res: Response) {
 
 export async function getMyLicenses(req: IRequestUser, res: Response) {
 	try {
-		const findLicenses: ILicense[] = await LicenseModel.find({ userId: req.user._id.toString() }).populate('suscription').lean().exec()
+		const findLicenses: ILicense[] = await LicenseModel.find({ userId: req.user._id.toString() }).populate(SUSCRIPTION_POPULATE).lean().exec()
 		findLicenses.forEach((license: ILicense) => {
 			delete license.__v
 			delete license.userId

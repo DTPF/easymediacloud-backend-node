@@ -1,3 +1,4 @@
+import { LICENSE_MODEL, USER_MODEL } from "../../modelsConstants";
 const { Schema, model } = require('mongoose');
 
 const UserSchema = new Schema({
@@ -10,11 +11,10 @@ const UserSchema = new Schema({
   isVerified: Boolean,
   language: String,
   avatar: String,
-  licenses: [{ type: Schema.Types.ObjectId, ref: 'License' }],
+  licenses: [{ type: Schema.Types.ObjectId, ref: LICENSE_MODEL }],
 }, {
   timestamps: true
 })
 
-const UserModel = model('User', UserSchema);
-
+const UserModel = model(USER_MODEL, UserSchema);
 export default UserModel;

@@ -1,7 +1,8 @@
+import { LICENSE_MODEL, MEDIA_MODEL } from "../../modelsConstants";
 const { Schema, model } = require('mongoose');
 
 const MediaSchema = new Schema({
-  license: { type: Schema.Types.ObjectId, ref: 'License' },
+  license: { type: Schema.Types.ObjectId, ref: LICENSE_MODEL },
   directory: { type: String },
   url: { type: String, required: true },
   fileName: { type: String, required: true },
@@ -12,6 +13,5 @@ const MediaSchema = new Schema({
   timestamps: true
 })
 
-const MediaModel = model("Media", MediaSchema)
-
+const MediaModel = model(MEDIA_MODEL, MediaSchema)
 export default MediaModel;

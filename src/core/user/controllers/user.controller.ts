@@ -4,6 +4,7 @@ import { userRole, adminRole, creatorRole, uploadsAvatarPath } from "../../../ut
 import { responseKey, userKey } from "../../responseKey";
 import { IAuth0User, IUser, IRequestUser } from "../../../interfaces/user.interface";
 import i18next from "i18next";
+import { LICENSES_POPULATE } from "../../modelsConstants";
 const fs = require("fs-extra")
 const path = require("path")
 const t = i18next.t
@@ -15,7 +16,7 @@ export async function registerLoginUser(req: IRequestUser, res: Response) {
 	}
 	let userStored;
 	try {
-		userStored = await UserModel.findOne({ auth0Id: user.sub.toString() }).populate('licenses').lean().exec()
+		userStored = await UserModel.findOne({ auth0Id: user.sub.toString() }).populate(LICENSES_POPULATE).lean().exec()
 		if (userStored) {
 			userStored.__v = undefined
 			userStored.licenses = undefined

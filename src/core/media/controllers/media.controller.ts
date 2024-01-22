@@ -2,21 +2,21 @@ import { Request, Response } from "express";
 import multipart from "connect-multiparty"
 import i18next from "i18next";
 import { mediaFolderPath } from "../../../utils/constants";
-import { RequestUser } from "../../../interfaces/user.interface";
+import { IRequestUser } from "../../../interfaces/user.interface";
 import jwt from "jsonwebtoken";
 import LicenseModel from "../../licenses/models/license.model";
 import MediaModel from "../models/media.model";
 import { ServerConfig } from "../../../config/config";
-import { mediaKey, responseKey } from "../../responseKey";
-import { LicenseInterface } from "../../../interfaces/license.interface";
-import { MediaInterface } from "../../../interfaces/media.interface";
-import getFolderSize from "../../../utils/getFolderSize";
+import { licenseKey, mediaKey, responseKey } from "../../responseKey";
+import { ILicense } from "../../../interfaces/license.interface";
+import { IMedia } from "../../../interfaces/media.interface";
+import { convertBytes } from "../../../utils/getFolderSize";
 const config: ServerConfig = require('../../../config/config')
 const fs = require("fs-extra")
 const path = require("path")
 const t = i18next.t
 
-export async function postMedia(req: RequestUser | any, response: Response) {
+export async function postMedia(req: IRequestUser | any, response: Response) {
   const { folders } = req.params
   jwt.verify(req.headers.authorization, config.app.SECRET_KEY as string, async function (err: any, decodedApiKeyToken: any) {
     if (err) {
@@ -26,12 +26,15 @@ export async function postMedia(req: RequestUser | any, response: Response) {
       return response.status(404).send({ status: mediaKey.apiKeyNotFound, message: t('api-key-not-found') })
     }
     const { project, email } = decodedApiKeyToken
-    const findLicense: LicenseInterface = await LicenseModel.findOne({ project: project }).lean().exec()
+    const findLicense: ILicense = await LicenseModel.findOne({ project: project }).lean().exec()
     if (!findLicense || !decodedApiKeyToken.apiKey) {
-      return response.status(404).send({ status: mediaKey.licenseNotFound, message: t('license-not-found') })
+      return response.status(404).send({ status: licenseKey.licenseNotFound, message: t('license-not-found') })
     }
-    if (!findLicense.enabled) {
-      return response.status(404).send({ status: mediaKey.licenseNotEnabled, message: t('license-not-enabled') })
+    if (findLicense.enabled === false) {
+      return response.status(404).send({ status: licenseKey.licenseNotEnabled, message: t('license-not-enabled') })
+    }
+    if (findLicense.online === false) {
+      return response.status(403).send({ status: licenseKey.licenseOffline, message: t('license-offline') })
     }
     const foldersArray = folders?.split('-')
     const foldersPath = !foldersArray ? '' : `${foldersArray?.join('/')}/`
@@ -43,32 +46,36 @@ export async function postMedia(req: RequestUser | any, response: Response) {
       if (err) {
         return response.status(500).send({ status: mediaKey.createMediaError, message: t('create-media-error'), err: err })
       }
-      const imagePath = req.files?.image && req.files.image.path
-      if (!imagePath) {
+      const imagePath = req.files?.image && req.files?.image?.path
+      if (!req.files?.image || !req.files?.image.name || req.files?.image.size === 0) {
         fs.unlinkSync(imagePath)
         return response.status(404).send({ status: mediaKey.createMediaError, message: t('create-media-error') })
       }
       const fileName = req.files.image.path.split('/')[req.files.image.path.split('/').length - 1]
       const url = `${config.app.URL}/${imagePath}`
+      const size = convertBytes(req.files.image.size)
       const newMedia = new MediaModel({
         license: findLicense._id,
         directory: folders?.split('-').join('/'),
         url: url,
         fileName: fileName,
+        size: req.files.image.size,
+        sizeT: size,
         enabled: true
       })
       try {
-        const mediaSaved: MediaInterface = await newMedia.save()
+        const mediaSaved: IMedia = await newMedia.save()
         mediaSaved.__v = undefined
+        await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, {
+          $inc: {
+            totalFiles: 1,
+            size: req.files.image.size
+          },
+        }, { new: true }).lean().exec()
         return response.status(200).send({ status: mediaKey.createMediaSuccess, message: t('create-media-success'), media: mediaSaved })
       } catch (err: any) {
         fs.unlinkSync(imagePath)
         return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
-      } finally {
-        const size = await getFolderSize(`${mediaFolderPath}/${decodedApiKeyToken.email}`)
-        if (size) {
-          await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, { size: size }, { new: true }).lean().exec()
-        }
       }
     })
   })
@@ -76,15 +83,18 @@ export async function postMedia(req: RequestUser | any, response: Response) {
 
 export async function getMedia(req: Request, res: Response) {
   const { project, folders, media } = req.params
-  const findMedia: MediaInterface = await MediaModel.findOne({ fileName: media }).populate('license').lean().exec()
+  const findMedia: IMedia = await MediaModel.findOne({ fileName: media }).populate('license').lean().exec()
   if (!findMedia) {
     return res.status(405).send({ status: mediaKey.mediaNotExists, message: t('media-not-exists') })
   }
   if (findMedia && findMedia.license && !findMedia.license.enabled) {
-    return res.status(403).send({ status: mediaKey.licenseNotEnabled, message: t('license-not-enabled') })
+    return res.status(403).send({ status: licenseKey.licenseNotEnabled, message: t('license-not-enabled') })
   }
   if (findMedia && !findMedia.enabled) {
     return res.status(403).send({ status: mediaKey.mediaProtected, message: t('media-protected') })
+  }
+  if (findMedia && findMedia.license.online === false) {
+    return res.status(403).send({ status: licenseKey.licenseOffline, message: t('license-offline') })
   }
   const foldersArray = folders?.split('-')
   const foldersPath = !foldersArray ? '' : `${foldersArray?.join('/')}/`

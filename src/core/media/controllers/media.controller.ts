@@ -12,8 +12,8 @@ import { IApiKey, ILicense } from "../../../interfaces/license.interface";
 import { IMedia } from "../../../interfaces/media.interface";
 import { convertBytes } from "../../../utils/getFolderSize";
 import moment from "moment";
-import SuscriptionModel from "../../suscriptions/models/suscription.model";
-import { LICENSE_POPULATE, SUSCRIPTION_POPULATE } from "../../modelsConstants";
+import SubscriptionModel from "../../subscriptions/models/subscription.model";
+import { LICENSE_POPULATE, SUBSCRIPTION_POPULATE } from "../../modelsConstants";
 const config: ServerConfig = require('../../../config/config')
 const fs = require("fs-extra")
 const path = require("path")
@@ -31,7 +31,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     }
     const { project, nickname } = decodedApiKeyToken
     // Find license
-    const findLicense: ILicense | any = await LicenseModel.findOne({ project: project }).populate(SUSCRIPTION_POPULATE).lean().exec()
+    const findLicense: ILicense = await LicenseModel.findOne({ project: project }).populate(SUBSCRIPTION_POPULATE).lean().exec()
     if (!findLicense || !decodedApiKeyToken.apiKey) {
       return response.status(404).send({ status: licenseKey.licenseNotFound, message: t('license-not-found') })
     }
@@ -44,11 +44,11 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
       return response.status(403).send({ status: licenseKey.licenseOffline, message: t('license-offline') })
     }
     // Break if license is expired
-    if (moment().isBefore(moment(findLicense.suscription.expire)) === false) {
+    if (moment().isBefore(moment(findLicense.subscription.expire)) === false) {
       return response.status(403).send({ status: licenseKey.licenseExpired, message: t('license-expired') })
     }
     // Break if license is over max size
-    if (findLicense.size >= findLicense.suscription.maxSize) {
+    if (findLicense.subscription.maxSize && findLicense.size >= findLicense.subscription.maxSize ) {
       return response.status(403).send({ status: licenseKey.licenseOverMaxSize, message: t('license-over-max-size') })
     }
     const foldersArray = folders?.split('-')
@@ -117,9 +117,9 @@ export async function getMedia(req: Request, res: Response) {
   if (findMedia && findMedia.license.online === false) {
     return res.status(403).send({ status: licenseKey.licenseOffline, message: t('license-offline') })
   }
-  const findSuscription = await SuscriptionModel.findOne({ _id: findMedia.license.suscription }).lean().exec()
+  const findSubscription = await SubscriptionModel.findOne({ _id: findMedia.license.subscription }).lean().exec()
   //Break if license is expired
-  if (moment().isBefore(moment(findSuscription.expire)) === false) {
+  if (moment().isBefore(moment(findSubscription.expire)) === false) {
     return res.status(403).send({ status: licenseKey.licenseExpired, message: t('license-expired') })
   }
   const foldersArray = folders?.split('-')

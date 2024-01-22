@@ -10,11 +10,11 @@ import i18next from "i18next";
 import { ServerConfig } from "../../../config/config";
 import { IApiKey, ILicense } from "../../../interfaces/license.interface";
 import { convertBytes } from "../../../utils/getFolderSize";
-import SuscriptionModel from "../../suscriptions/models/suscription.model";
-import { B500MB, FREE } from "../../suscriptions/suscriptionsConstants";
+import SubscriptionModel from "../../subscriptions/models/subscription.model";
+import { B500MB, FREE } from "../../subscriptions/subscriptionsConstants";
 import moment from "moment";
-import { ISuscription } from "../../../interfaces/suscription.interface";
-import { SUSCRIPTION_POPULATE } from "../../modelsConstants";
+import { ISubscription } from "../../../interfaces/subscription.interface";
+import { SUBSCRIPTION_POPULATE } from "../../modelsConstants";
 const config: ServerConfig = require('../../../config/config')
 const t = i18next.t
 const fs = require("fs-extra")
@@ -77,9 +77,9 @@ export async function createLicense(req: IRequestUser, res: Response) {
 			licenseSaved.enabled = undefined
 			licenseSaved.user = undefined
 			licenseSaved.apiKey = undefined
-			// Create suscription
+			// Create subscription
 			try {
-				const newSuscription = new SuscriptionModel({
+				const newSubscription = new SubscriptionModel({
 					user: req.user._id,
 					license: licenseSaved._id,
 					type: FREE,
@@ -90,25 +90,25 @@ export async function createLicense(req: IRequestUser, res: Response) {
 					expire: moment().add(1, 'year'),
 					enabled: true
 				})
-				const suscriptionSaved: ISuscription = await newSuscription.save()
-				if (!suscriptionSaved) {
-					return res.status(404).send({ status: licenseKey.createSuscriptionError, message: t('licenses_create-suscription-error') })
+				const subscriptionSaved: ISubscription = await newSubscription.save()
+				if (!subscriptionSaved) {
+					return res.status(404).send({ status: licenseKey.createSubscriptionError, message: t('licenses_create-subscription-error') })
 				}
-				// Update license suscription
-				const updateLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseSaved._id }, { suscription: suscriptionSaved._id }, { new: true }).populate(SUSCRIPTION_POPULATE).lean().exec()
+				// Update license subscription
+				const updateLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseSaved._id }, { subscription: subscriptionSaved._id }, { new: true }).populate(SUBSCRIPTION_POPULATE).lean().exec()
 				delete updateLicense.__v
 				delete updateLicense.apiKey
 				delete updateLicense.user
-				delete updateLicense.suscription._id
-				delete updateLicense.suscription.__v
-				delete updateLicense.suscription.user
-				delete updateLicense.suscription.license
-				delete updateLicense.suscription.expire
+				delete updateLicense.subscription._id
+				delete updateLicense.subscription.__v
+				delete updateLicense.subscription.user
+				delete updateLicense.subscription.license
+				delete updateLicense.subscription.expire
 				// Return license
 				return res.status(200).send({ status: licenseKey.createdSuccess, message: t('licenses_created-success'), license: updateLicense })
 			} catch (error) {
 				if (error) {
-					return res.status(404).send({ status: licenseKey.createSuscriptionError, message: t('licenses_create-suscription-error'), error: error })
+					return res.status(404).send({ status: licenseKey.createSubscriptionError, message: t('licenses_create-subscription-error'), error: error })
 				}
 			}
 			// Return license
@@ -125,7 +125,7 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 	const { licenseId } = req.params
 	try {
 		// Find license
-		const findLicense: ILicense = await LicenseModel.findOne({ _id: licenseId }).populate(SUSCRIPTION_POPULATE).lean().exec()
+		const findLicense: ILicense = await LicenseModel.findOne({ _id: licenseId }).populate(SUBSCRIPTION_POPULATE).lean().exec()
 		if (!findLicense || !findLicense?.apiKey) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 		}
@@ -136,11 +136,11 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 		}
 		delete findLicense.apiKey
 		delete findLicense.__v
-		delete findLicense.suscription._id
-		delete findLicense.suscription.__v
-		delete findLicense.suscription.user
-		delete findLicense.suscription.license
-		delete findLicense.suscription.expire
+		delete findLicense.subscription._id
+		delete findLicense.subscription.__v
+		delete findLicense.subscription.user
+		delete findLicense.subscription.license
+		delete findLicense.subscription.expire
 		// Return license
 		return res.status(200).send({
 			status: licenseKey.getLicenseSuccess,
@@ -171,15 +171,15 @@ export async function getApiKey(req: IRequestUser, res: Response) {
 
 export async function getMyLicenses(req: IRequestUser, res: Response) {
 	try {
-		const findLicenses: ILicense[] = await LicenseModel.find({ user: req.user._id.toString() }).populate(SUSCRIPTION_POPULATE).lean().exec()
+		const findLicenses: ILicense[] = await LicenseModel.find({ user: req.user._id.toString() }).populate(SUBSCRIPTION_POPULATE).lean().exec()
 		findLicenses.forEach((license: ILicense) => {
 			delete license.__v
 			delete license.user
 			delete license.apiKey
-			delete license.suscription.__v
-			delete license.suscription.user
-			delete license.suscription.license
-			delete license.suscription.expire
+			delete license.subscription.__v
+			delete license.subscription.user
+			delete license.subscription.license
+			delete license.subscription.expire
 		})
 		return res.status(200).send({ status: licenseKey.getLicenseSuccess, message: t('licenses_get-my-licenses_success'), licenses: findLicenses })
 	} catch (err) {

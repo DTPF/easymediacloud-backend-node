@@ -5,4 +5,4 @@ import { ServerConfig } from "../../../config/config";
 const config: ServerConfig = require('../../../config/config')
 const t = i18next.t
 
-export async function createSuscription(req: IRequestUser, res: Response) { }
+export async function createSubscription(req: IRequestUser, res: Response) { }

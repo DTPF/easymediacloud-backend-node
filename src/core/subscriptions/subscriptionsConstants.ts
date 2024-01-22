@@ -8,7 +8,7 @@ export const B20GB = 21474836480
 export const C500MB = convertBytes(B500MB)
 export const C5GB = convertBytes(B5GB)
 export const C20GB = convertBytes(B20GB)
-// Suscriptions types
+// Subscriptions types
 export const FREE = 'free'
 export const BASIC = 'basic'
 export const PREMIUM = 'premium'

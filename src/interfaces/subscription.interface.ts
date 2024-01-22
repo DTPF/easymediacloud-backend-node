@@ -1,4 +1,4 @@
-export interface ISuscription {
+export interface ISubscription {
   _id?: string
   user?: string
   license?: string
@@ -12,4 +12,4 @@ export interface ISuscription {
   __v?: number | string | undefined
 }
 
-export type SuscriptionType = 'free' | 'basic' | 'premium'
+export type SubscriptionType = 'free' | 'basic' | 'premium'

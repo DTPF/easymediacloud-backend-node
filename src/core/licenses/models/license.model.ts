@@ -1,4 +1,4 @@
-import { LICENSE_MODEL, SUSCRIPTION_MODEL, USER_MODEL } from "../../modelsConstants";
+import { LICENSE_MODEL, SUBSCRIPTION_MODEL, USER_MODEL } from "../../modelsConstants";
 const { Schema, model } = require('mongoose');
 
 const LicenseSchema = new Schema({
@@ -10,7 +10,7 @@ const LicenseSchema = new Schema({
   size: { type: Number, default: 0 },
   sizeT: { type: String, default: '0 B' },
   totalFiles: { type: Number, default: 0 },
-  suscription: { type: Schema.Types.ObjectId, ref: SUSCRIPTION_MODEL },
+  subscription: { type: Schema.Types.ObjectId, ref: SUBSCRIPTION_MODEL },
 }, {
   timestamps: true
 })

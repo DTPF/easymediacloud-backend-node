@@ -1,4 +1,4 @@
-import { ISuscription } from "./suscription.interface"
+import { ISubscription } from "./subscription.interface"
 import { IUser } from "./user.interface"
 
 export interface ILicense {
@@ -11,7 +11,7 @@ export interface ILicense {
   size: number
   sizeT: string
   totalFiles?: number
-  suscription: ISuscription
+  subscription: ISubscription
   __v: any
 }
 

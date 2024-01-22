@@ -1,12 +1,13 @@
-import { Request } from "express"
-import { LicenseInterface } from "./license.interface"
+import { ILicense } from "./license.interface"
 
-export interface MediaInterface {
+export interface IMedia {
   _id: string
-  license: LicenseInterface
+  license: ILicense
   directory: string
   url: string
   fileName: string
+  size?: number
+  sizeT?: string
   enabled: boolean
   createdAt: Date
   updatedAt: Date

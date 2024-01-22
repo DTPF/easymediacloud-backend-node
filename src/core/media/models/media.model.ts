@@ -5,8 +5,8 @@ const MediaSchema = new Schema({
   directory: { type: String },
   url: { type: String, required: true },
   fileName: { type: String, required: true },
-  sizeT: { type: String, default: '0 B' },
   size: { type: Number, default: 0 },
+  sizeT: { type: String, default: '0 B' },
   enabled: { type: Boolean, default: true },
 }, {
   timestamps: true

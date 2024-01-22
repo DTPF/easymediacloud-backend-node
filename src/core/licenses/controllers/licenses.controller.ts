@@ -13,6 +13,7 @@ import { convertBytes } from "../../../utils/getFolderSize";
 import SuscriptionModel from "../../suscriptions/models/suscription.model";
 import { B500MB, FREE } from "../../suscriptions/suscriptionsConstants";
 import moment from "moment";
+import { ISuscription } from "../../../interfaces/suscription.interface";
 const config: ServerConfig = require('../../../config/config')
 const t = i18next.t
 const fs = require("fs-extra")
@@ -84,24 +85,24 @@ export async function createLicense(req: IRequestUser, res: Response) {
 					price: 0,
 					currency: '€',
 					maxSize: B500MB,
+					maxSizeT: convertBytes(B500MB),
 					expire: moment().add(1, 'year'),
 					enabled: true
 				})
-				const suscriptionSaved = await newSuscription.save()
+				const suscriptionSaved: ISuscription = await newSuscription.save()
 				if (!suscriptionSaved) {
 					return res.status(404).send({ status: licenseKey.createSuscriptionError, message: t('licenses_create-suscription-error') })
 				}
 				// Update license suscription
-				const updateLicense = await LicenseModel.findOneAndUpdate({ _id: licenseSaved._id }, { suscription: suscriptionSaved._id }, { new: true }).populate('suscription').lean().exec()
+				const updateLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseSaved._id }, { suscription: suscriptionSaved._id }, { new: true }).populate('suscription').lean().exec()
 				delete updateLicense.__v
 				delete updateLicense.apiKey
-				delete updateLicense.user
+				delete updateLicense.userId
 				delete updateLicense.suscription._id
 				delete updateLicense.suscription.__v
 				delete updateLicense.suscription.user
 				delete updateLicense.suscription.license
 				delete updateLicense.suscription.expire
-				updateLicense.suscription.maxSize = convertBytes(updateLicense.suscription.maxSize)
 				// Return license
 				return res.status(200).send({ status: licenseKey.createdSuccess, message: t('licenses_created-success'), license: updateLicense })
 			} catch (error) {
@@ -139,8 +140,6 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 		delete findLicense.suscription.user
 		delete findLicense.suscription.license
 		delete findLicense.suscription.expire
-		findLicense.sizeT = convertBytes(findLicense.size as number)
-		findLicense.suscription.maxSizeT = convertBytes(findLicense.suscription.maxSize as number)
 		// Return license
 		return res.status(200).send({
 			status: licenseKey.getLicenseSuccess,
@@ -176,12 +175,10 @@ export async function getMyLicenses(req: IRequestUser, res: Response) {
 			delete license.__v
 			delete license.userId
 			delete license.apiKey
-			license.sizeT = convertBytes(license.size as number)
 			delete license.suscription.__v
 			delete license.suscription.user
 			delete license.suscription.license
 			delete license.suscription.expire
-			license.suscription.maxSizeT = convertBytes(license.suscription.maxSize as number)
 		})
 		return res.status(200).send({ status: licenseKey.getLicenseSuccess, message: t('licenses_get-my-licenses_success'), licenses: findLicenses })
 	} catch (err) {

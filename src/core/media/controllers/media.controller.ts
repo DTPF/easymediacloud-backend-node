@@ -70,7 +70,6 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
       }
       const fileName = req.files.image.path.split('/')[req.files.image.path.split('/').length - 1]
       const url = `${config.app.URL}/${imagePath}`
-      const size = convertBytes(req.files.image.size)
       // Create media
       const newMedia = new MediaModel({
         license: findLicense._id,
@@ -78,7 +77,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
         url: url,
         fileName: fileName,
         size: req.files.image.size,
-        sizeT: size,
+        sizeT: convertBytes(req.files.image.size),
         enabled: true
       })
       try {
@@ -87,6 +86,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
         // Update license size and total files
         await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, {
           $inc: { totalFiles: 1, size: req.files.image.size },
+          sizeT: convertBytes(findLicense.size + req.files.image.size)
         }, { new: true }).lean().exec()
         return response.status(200).send({ status: mediaKey.createMediaSuccess, message: t('create-media-success'), media: mediaSaved })
       } catch (err: any) {

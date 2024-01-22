@@ -7,6 +7,7 @@ const SuscriptionSchema = new Schema({
   price: { type: Number, default: 0, required: true },
   currency: { type: String, required: true },
   maxSize: { type: Number, default: 0 },
+  maxSizeT: { type: String, default: '0 B' },
   expire: { type: Date, required: true },
   enabled: { type: Boolean, default: true },
 }, {

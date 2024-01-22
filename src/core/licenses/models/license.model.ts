@@ -7,6 +7,7 @@ const LicenseSchema = new Schema({
   enabled: { type: Boolean, required: true, default: true },
   online: { type: Boolean, required: true },
   size: { type: Number, default: 0 },
+  sizeT: { type: String, default: '0 B' },
   totalFiles: { type: Number, default: 0 },
   suscription: { type: Schema.Types.ObjectId, ref: 'Suscription' },
 }, {

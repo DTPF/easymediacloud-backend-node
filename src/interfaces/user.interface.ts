@@ -1,7 +1,7 @@
 import { Request } from "express"
-import { LicenseInterface } from "./license.interface"
+import { ILicense } from "./license.interface"
 
-export interface User {
+export interface IUser {
   _id: string
   auth0Id: string
   name: string
@@ -11,11 +11,11 @@ export interface User {
   language: string
   createdAt: Date
   updatedAt: Date
-  licenses: LicenseInterface[]
+  licenses: ILicense[]
   __v: string | any
 }
 
-export interface Auth0User {
+export interface IAuth0User {
   nickname: string
   name: string
   picture: string
@@ -26,8 +26,8 @@ export interface Auth0User {
   locale: string
 }
 
-export interface RequestUser extends Request {
-  user: User
+export interface IRequestUser extends Request {
+  user: IUser
   auth: Auth0Request
   files: {
     image: { path: string },

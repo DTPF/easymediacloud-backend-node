@@ -18,9 +18,23 @@ export async function registerLoginUser(req: IRequestUser, res: Response) {
 	try {
 		userStored = await UserModel.findOne({ auth0Id: user.sub.toString() }).populate(LICENSES_POPULATE).lean().exec()
 		if (userStored) {
-			userStored.__v = undefined
-			userStored.licenses = undefined
-			return res.status(201).send({ user: userStored })
+			delete userStored.__v
+			delete userStored.licenses
+			if (userStored.isVerified === false && user.email_verified === true) {
+				try {
+					const updateUser = await UserModel.findOneAndUpdate({ auth0Id: user.sub.toString() }, { isVerified: user.email_verified }, { new: true }).lean().exec()
+					if (!updateUser) {
+						return res.status(404).send({ status: userKey.notFound, message: t('user-not-found') })
+					}
+					delete updateUser.__v
+					delete updateUser.licenses
+					return res.status(201).send({ user: updateUser })
+				} catch (error) {
+					return res.status(201).send({ user: userStored })
+				}
+			} else {
+				return res.status(201).send({ user: userStored })
+			}
 		} else {
 			const newUser = new UserModel({
 				auth0Id: user.sub,

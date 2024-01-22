@@ -25,7 +25,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 		return res.status(404).send({ status: licenseKey.projectRequired, message: t('data-required') })
 	}
 	// Find user licenses
-	const findUserLicenses: ILicense[] = await LicenseModel.find({ userId: req.user._id }).lean().exec()
+	const findUserLicenses: ILicense[] = await LicenseModel.find({ user: req.user._id }).lean().exec()
 	// Check if exists a license with the same project name
 	const licenseProjectExists = await findUserLicenses.find((license: ILicense) => license.project === project)
 	if (licenseProjectExists) {
@@ -57,7 +57,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 				return res.status(404).send({ status: licenseKey.createApiKeyTokenError, message: t('create-api-key-token-error') })
 			}
 			const newLicense = new LicenseModel({
-				userId: req.user._id,
+				user: req.user._id,
 				project,
 				apiKey,
 				enabled: true,
@@ -75,7 +75,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 			}
 			licenseSaved.__v = undefined
 			licenseSaved.enabled = undefined
-			licenseSaved.userId = undefined
+			licenseSaved.user = undefined
 			licenseSaved.apiKey = undefined
 			// Create suscription
 			try {
@@ -98,7 +98,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 				const updateLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseSaved._id }, { suscription: suscriptionSaved._id }, { new: true }).populate(SUSCRIPTION_POPULATE).lean().exec()
 				delete updateLicense.__v
 				delete updateLicense.apiKey
-				delete updateLicense.userId
+				delete updateLicense.user
 				delete updateLicense.suscription._id
 				delete updateLicense.suscription.__v
 				delete updateLicense.suscription.user
@@ -156,7 +156,7 @@ export async function getApiKey(req: IRequestUser, res: Response) {
 	const { licenseId } = req.params
 	try {
 		const findLicense: ILicense | undefined = req.user.licenses.find((license: ILicense) => license._id == licenseId)
-		if (!findLicense?.apiKey || findLicense.userId?.toString() !== req.user._id.toString()) {
+		if (!findLicense?.apiKey || findLicense.user?.toString() !== req.user._id.toString()) {
 			return res.status(404).send({ status: licenseKey.apiKeyNotFound, message: t('api-key-not-found') })
 		}
 		return res.status(200).send({
@@ -171,10 +171,10 @@ export async function getApiKey(req: IRequestUser, res: Response) {
 
 export async function getMyLicenses(req: IRequestUser, res: Response) {
 	try {
-		const findLicenses: ILicense[] = await LicenseModel.find({ userId: req.user._id.toString() }).populate(SUSCRIPTION_POPULATE).lean().exec()
+		const findLicenses: ILicense[] = await LicenseModel.find({ user: req.user._id.toString() }).populate(SUSCRIPTION_POPULATE).lean().exec()
 		findLicenses.forEach((license: ILicense) => {
 			delete license.__v
-			delete license.userId
+			delete license.user
 			delete license.apiKey
 			delete license.suscription.__v
 			delete license.suscription.user
@@ -215,7 +215,7 @@ export async function updateLicenseProject(req: IRequestUser, res: Response) {
 		return res.status(404).send({ status: licenseKey.projectRequired, message: t('data-required') })
 	}
 
-	const findUserLicenses: ILicense[] = await LicenseModel.find({ userId: req.user._id }).lean().exec()
+	const findUserLicenses: ILicense[] = await LicenseModel.find({ user: req.user._id }).lean().exec()
 	if (findUserLicenses.length === 0) {
 		return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 	}

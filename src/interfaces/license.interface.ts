@@ -3,7 +3,7 @@ import { IUser } from "./user.interface"
 
 export interface ILicense {
   _id?: string
-  userId?: IUser
+  user?: IUser
   project: string
   apiKey?: string
   enabled?: boolean

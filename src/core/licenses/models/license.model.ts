@@ -2,7 +2,7 @@ import { LICENSE_MODEL, SUSCRIPTION_MODEL, USER_MODEL } from "../../modelsConsta
 const { Schema, model } = require('mongoose');
 
 const LicenseSchema = new Schema({
-  userId: { type: Schema.Types.ObjectId, ref: USER_MODEL },
+  user: { type: Schema.Types.ObjectId, ref: USER_MODEL },
   project: { type: String, required: true },
   apiKey: { type: String, required: true, unique: true },
   enabled: { type: Boolean, required: true, default: true },

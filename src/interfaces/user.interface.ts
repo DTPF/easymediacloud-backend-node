@@ -15,6 +15,7 @@ export interface IUser {
   licenses: ILicense[]
   createdAt: Date
   updatedAt: Date
+  lastLogin: Date
   __v: string | any
 }
 

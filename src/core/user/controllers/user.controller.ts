@@ -61,9 +61,7 @@ export async function registerLoginUser(req: IRequestUser, res: Response) {
 	} catch (err) {
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
 	} finally {
-		if (user.sub && userStored?.isVerified === false && user.email_verified === true) {
-			await UserModel.findOneAndUpdate({ auth0Id: user.sub }, { isVerified: user.email_verified }, { new: true }).lean().exec()
-		}
+		await UserModel.findOneAndUpdate({ auth0Id: user.sub }, { lastLogin: new Date()}, { new: true, timestamps: false }).lean().exec()
 	}
 }
 

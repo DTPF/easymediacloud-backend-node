@@ -12,6 +12,7 @@ const UserSchema = new Schema({
   language: String,
   avatar: String,
   licenses: [{ type: Schema.Types.ObjectId, ref: LICENSE_MODEL }],
+  lastLogin: Date,
 }, {
   timestamps: true
 })

@@ -46,7 +46,7 @@ async function dirSize(path: any, callback: any) {
   })
 }
 
-function convertirBytes(bytes: number) {
+export function convertBytes(bytes: number) {
   if (bytes < 1024) {
     return bytes + " B";
   } else if (bytes < 1048576) {
@@ -66,7 +66,7 @@ async function getFolderSize(path: string) {
       if (err) {
         return reject(err);
       }
-      const totalSize = convertirBytes(size)
+      const totalSize = convertBytes(size)
       return resolve(totalSize);
     })
   })

@@ -5,7 +5,9 @@ const LicenseSchema = new Schema({
   project: { type: String, required: true },
   apiKey: { type: String, required: true, unique: true },
   enabled: { type: Boolean, required: true },
-  size: { type: String, default: '0 B' },
+  online: { type: Boolean, required: true },
+  size: { type: Number, default: 0 },
+  totalFiles: { type: Number, default: 0 },
 }, {
   timestamps: true
 })

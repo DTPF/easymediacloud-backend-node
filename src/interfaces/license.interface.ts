@@ -17,6 +17,6 @@ export interface ILicense {
 
 export interface IApiKey {
   project: string
-  email: string
+  nickname: string
   apiKey: string
 }

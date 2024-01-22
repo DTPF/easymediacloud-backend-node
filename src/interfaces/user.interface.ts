@@ -5,13 +5,16 @@ export interface IUser {
   _id: string
   auth0Id: string
   name: string
+  lastname: string
+  nickname: string
   email: string
   role: string
   isVerified: boolean
   language: string
+  avatar: string
+  licenses: ILicense[]
   createdAt: Date
   updatedAt: Date
-  licenses: ILicense[]
   __v: string | any
 }
 

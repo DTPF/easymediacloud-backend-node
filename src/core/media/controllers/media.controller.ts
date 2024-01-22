@@ -8,7 +8,7 @@ import LicenseModel from "../../licenses/models/license.model";
 import MediaModel from "../models/media.model";
 import { ServerConfig } from "../../../config/config";
 import { licenseKey, mediaKey, responseKey } from "../../responseKey";
-import { ILicense } from "../../../interfaces/license.interface";
+import { IApiKey, ILicense } from "../../../interfaces/license.interface";
 import { IMedia } from "../../../interfaces/media.interface";
 import { convertBytes } from "../../../utils/getFolderSize";
 import moment from "moment";
@@ -21,14 +21,14 @@ const t = i18next.t
 export async function postMedia(req: IRequestUser | any, response: Response) {
   const { folders } = req.params
   // Verify authorization token
-  jwt.verify(req.headers.authorization, config.app.SECRET_KEY as string, async function (err: any, decodedApiKeyToken: any) {
+  jwt.verify(req.headers.authorization, config.app.SECRET_KEY as string, async function (err: any, decodedApiKeyToken: IApiKey | any) {
     if (err) {
       return response.status(403).send({ status: responseKey.tokenInvalid, message: t('token-not-valid') })
     }
     if (!decodedApiKeyToken) {
       return response.status(404).send({ status: mediaKey.apiKeyNotFound, message: t('api-key-not-found') })
     }
-    const { project, email } = decodedApiKeyToken
+    const { project, nickname } = decodedApiKeyToken
     // Find license
     const findLicense: ILicense | any = await LicenseModel.findOne({ project: project }).populate('suscription').lean().exec()
     if (!findLicense || !decodedApiKeyToken.apiKey) {
@@ -52,7 +52,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     }
     const foldersArray = folders?.split('-')
     const foldersPath = !foldersArray ? '' : `${foldersArray?.join('/')}/`
-    const absolutePath = `${mediaFolderPath}/${email}/${project}/${foldersPath}`
+    const absolutePath = `${mediaFolderPath}/${nickname}/${project}/${foldersPath}`
     // Create directory if not exists
     if (!fs.existsSync(absolutePath)) {
       fs.mkdirSync(absolutePath, { recursive: true })

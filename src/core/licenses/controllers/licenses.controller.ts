@@ -2,7 +2,7 @@ import { Response } from "express";
 import LicenseModel from "../models/license.model";
 import UserModel from "../../user/models/user.model";
 import { mediaFolderPath } from "../../../utils/constants";
-import { responseKey, licenseKey } from "../../responseKey";
+import { responseKey, licenseKey, userKey } from "../../responseKey";
 import { IRequestUser } from "../../../interfaces/user.interface";
 import { createLicenseApiKeyJWT } from "../../../services/jwt";
 import jwt from "jsonwebtoken";
@@ -29,8 +29,12 @@ export async function createLicense(req: IRequestUser, res: Response) {
 	if (licenseProjectExists) {
 		return res.status(404).send({ status: licenseKey.repeatedProject, message: t('project-repeated') })
 	}
+	// Check if user has a nickname
+	if(!req.user.nickname) {
+		return res.status(404).send({ status: userKey.nicknameRequired, message: t('nickname-required') })
+	}
 	// Create main folder if not exists
-	const mainFolderName = req.user.email.split('@')[0]
+	const mainFolderName = req.user.nickname
 	if (findUserLicenses.length === 0) {
 		fs.mkdir(`${mediaFolderPath}/${mainFolderName}`, async function (err: any) {
 			if (err) {
@@ -46,7 +50,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 		}
 		try {
 			// Create license api key
-			const apiKey = await createLicenseApiKeyJWT(project, mainFolderName)
+			const apiKey = await createLicenseApiKeyJWT(project, req.user.nickname)
 			if (!apiKey) {
 				return res.status(404).send({ status: licenseKey.createApiKeyTokenError, message: t('create-api-key-token-error') })
 			}

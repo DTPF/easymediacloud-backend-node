@@ -4,12 +4,12 @@ const UserSchema = new Schema({
   auth0Id: { type: String, required: true, unique: true },
   name: { type: String },
   lastname: String,
-  nickname: String,
+  nickname:  { type: String, unique: true },
   email: { type: String, required: true, unique: true },
-  language: String,
-  avatar: String,
   role: String,
   isVerified: Boolean,
+  language: String,
+  avatar: String,
   licenses: [{ type: Schema.Types.ObjectId, ref: 'License' }],
 }, {
   timestamps: true

@@ -9,7 +9,8 @@ export const spanishLang = {
   'update-user-role_unauthorized': 'No tienes permisos para actualizar el rol del usuario',
   'update_user_success': 'Usuario actualizado correctamente',
   'avatar-extension-not-allowed': 'La extensión de la imagen no es válida. (Extensiones permitidas: .png y .jpg)',
-
+  'update_user-nickname-exists': 'El nickname ya existe, prueba con otro',
+  
   // Licenses
   'licenses_created-success': 'La licencia se ha creado correctamente',
   'licenses_create-directory-error': 'El directorio ya existe',
@@ -31,6 +32,7 @@ export const spanishLang = {
   'project-repeated': 'El nombre del proyecto ya existe en la base de datos',
   'create-api-key-token-error': 'Error al crear el token de la licencia',
   'api-key-not-found': 'Falta la Api-Key en la licencia',
+  'nickname-required': 'Falta el nickname del usuario',
 
   // Media
   'create-media-success': 'Archivo creado correctamente',

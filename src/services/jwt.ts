@@ -3,10 +3,10 @@ import { ServerConfig } from "../config/config";
 import mongoose from "mongoose";
 const config: ServerConfig = require('../config/config')
 
-export async function createLicenseApiKeyJWT(project: string, userEmail: string) {
+export async function createLicenseApiKeyJWT(project: string, nickname: string) {
   const payload = {
     project: project,
-    email: userEmail,
+    nickname: nickname,
     apiKey: new mongoose.Types.ObjectId,
   };
   if (!config.app.SECRET_KEY) throw new Error('SECRET_KEY is not defined')

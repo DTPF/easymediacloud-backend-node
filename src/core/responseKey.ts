@@ -6,6 +6,8 @@ export const userKey = {
   repeatedEmail: 'repeated-email',
   notFound: 'user-not-found',
   notVerified: 'not-verified',
+  nicknameRequired: 'nickname-required',
+  repeatedNickname: 'repeated-nickname',
 }
 
 export const mediaKey = {

@@ -63,7 +63,12 @@ export async function updateUser(req: IRequestUser, res: Response) {
 		}
 		delete userUpdated.__v
 		return res.status(200).send({ user: userUpdated })
-	} catch (err) {
+	} catch (err: any) {
+		if (err.code === 11000) {
+			if (err.keyValue.nickname) {
+				return res.status(500).send({ status: userKey.repeatedNickname, message: t('update_user-nickname-exists') })
+			}
+		}
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
 	}
 }

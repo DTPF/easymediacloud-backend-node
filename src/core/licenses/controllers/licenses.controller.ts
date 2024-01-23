@@ -4,7 +4,7 @@ import UserModel from "../../user/models/user.model";
 import { mediaFolderPath } from "../../../utils/constants";
 import { responseKey, licenseKey, userKey } from "../../responseKey";
 import { IRequestUser } from "../../../interfaces/user.interface";
-import { createLicenseApiKeyJWT } from "../../../services/jwt";
+import { createLicenseApiKeyJWT, refreshLicenseApiKeyJWT } from "../../../services/jwt";
 import jwt from "jsonwebtoken";
 import i18next from "i18next";
 import { ServerConfig } from "../../../config/config";
@@ -32,18 +32,17 @@ export async function createLicense(req: IRequestUser, res: Response) {
 		return res.status(404).send({ status: licenseKey.repeatedProject, message: t('project-repeated') })
 	}
 	// Check if user has a nickname
-	if(!req.user.nickname) {
+	if (!req.user.nickname) {
 		return res.status(404).send({ status: userKey.nicknameRequired, message: t('nickname-required') })
 	}
-	// Create main folder if not exists
+	// Create media folder if not exists
+	if (!fs.existsSync(mediaFolderPath)) {
+		fs.mkdirSync(mediaFolderPath)
+	}
 	const mainFolderName = req.user.nickname
-	if (findUserLicenses.length === 0) {
-		fs.mkdir(`${mediaFolderPath}/${mainFolderName}`, async function (err: any) {
-			if (err) {
-				console.log('Main directory error');
-			}
-			console.log('Main directory created');
-		})
+	// Create main folder if not exists
+	if (!fs.existsSync(`${mediaFolderPath}/${mainFolderName}`)) {
+		fs.mkdirSync(`${mediaFolderPath}/${mainFolderName}`)
 	}
 	// Create project folder
 	fs.mkdir(`${mediaFolderPath}/${mainFolderName}/${project}`, async function (err: any) {
@@ -52,7 +51,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 		}
 		try {
 			// Create license api key
-			const apiKey = await createLicenseApiKeyJWT(project, req.user.nickname)
+			const apiKey = await createLicenseApiKeyJWT(project, mainFolderName)
 			if (!apiKey) {
 				return res.status(404).send({ status: licenseKey.createApiKeyTokenError, message: t('create-api-key-token-error') })
 			}
@@ -130,7 +129,7 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 		}
 		// Decrypt license api key
-		const decryptedApiKey: IApiKey = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as IApiKey
+		const decryptedApiKey: IApiKey = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKey
 		if (!decryptedApiKey) {
 			return res.status(404).send({ status: licenseKey.getLicenseError, message: t('licenses_get-license_error') })
 		}
@@ -152,17 +151,64 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 	}
 }
 
-export async function getApiKey(req: IRequestUser, res: Response) {
+export async function getLicenseToken(req: IRequestUser, res: Response) {
 	const { licenseId } = req.params
 	try {
 		const findLicense: ILicense | undefined = req.user.licenses.find((license: ILicense) => license._id == licenseId)
 		if (!findLicense?.apiKey || findLicense.user?.toString() !== req.user._id.toString()) {
-			return res.status(404).send({ status: licenseKey.apiKeyNotFound, message: t('api-key-not-found') })
+			return res.status(404).send({ status: licenseKey.mediaTokenNotFound, message: t('media-token-not-found') })
 		}
 		return res.status(200).send({
-			status: licenseKey.getApiKeySuccess,
-			message: t('licenses_get-api-key_success'),
-			apiKey: findLicense.apiKey,
+			status: licenseKey.getMediaTokenSuccess,
+			message: t('licenses_get-media-token_success'),
+			mediaToken: findLicense.apiKey,
+		})
+	} catch (err) {
+		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
+	}
+}
+
+export async function getLicenseTokenDecrypted(req: IRequestUser, res: Response) {
+	const { licenseId } = req.params
+	try {
+		const findLicense: ILicense | undefined = req.user.licenses.find((license: ILicense) => license._id == licenseId)
+		if (!findLicense?.apiKey || findLicense.user?.toString() !== req.user._id.toString()) {
+			return res.status(404).send({ status: licenseKey.mediaTokenNotFound, message: t('media-token-not-found') })
+		}
+		const decryptedApiKey: IApiKey = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKey
+		return res.status(200).send({
+			status: licenseKey.getMediaTokenSuccess,
+			message: t('licenses_get-media-token_success'),
+			mediaTokenDecrypted: decryptedApiKey,
+		})
+	} catch (err) {
+		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
+	}
+}
+
+export async function refreshLicenseToken(req: IRequestUser, res: Response) {
+	const { licenseId } = req.params
+	try {
+		const findLicense: ILicense | undefined = req.user.licenses.find((license: ILicense) => license._id == licenseId)
+		if (!findLicense?.apiKey || findLicense.user?.toString() !== req.user._id.toString()) {
+			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('license-not-found') })
+		}
+		const decryptedToken: IApiKey = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKey
+		if (!decryptedToken) {
+			return res.status(404).send({ status: licenseKey.getLicenseError, message: t('licenses_get-license_error') })
+		}
+		const refreshToken = await refreshLicenseApiKeyJWT(decryptedToken)
+		if (!refreshToken) {
+			return res.status(400).send({ status: licenseKey.createApiKeyTokenError, message: t('create-api-key-token-error') })
+		}
+		const updateLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseId }, { apiKey: refreshToken }, { new: true }).lean().exec()
+		if (!updateLicense) {
+			return res.status(404).send({ status: licenseKey.getLicenseError, message: t('licenses_get-license_error') })
+		}
+		return res.status(200).send({
+			status: licenseKey.getMediaTokenSuccess,
+			message: t('licenses_get-media-token_success'),
+			mediaToken: refreshToken,
 		})
 	} catch (err) {
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })

@@ -1,3 +1,4 @@
+import { ObjectId } from "mongoose"
 import { ISubscription } from "./subscription.interface"
 import { IUser } from "./user.interface"
 
@@ -18,5 +19,6 @@ export interface ILicense {
 export interface IApiKey {
   project: string
   nickname: string
-  apiKey: string
+  apiKey: string | ObjectId
+  createToken: Date
 }

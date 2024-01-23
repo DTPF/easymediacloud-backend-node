@@ -24,6 +24,9 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
   // Verify authorization token
   jwt.verify(req.headers.authorization, config.app.SECRET_KEY as string, async function (err: any, decodedApiKeyToken: IApiKey | any) {
     if (err) {
+      if (err.message === 'jwt expired') {
+        return response.status(403).send({ status: responseKey.tokenExpired, message: t('token-expired') })
+      }
       return response.status(403).send({ status: responseKey.tokenInvalid, message: t('token-not-valid') })
     }
     if (!decodedApiKeyToken) {
@@ -50,6 +53,10 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     // Break if license is over max size
     if (findLicense.subscription.maxSize && findLicense.size >= findLicense.subscription.maxSize ) {
       return response.status(403).send({ status: licenseKey.licenseOverMaxSize, message: t('license-over-max-size') })
+    }
+    // Break if license token is not valid
+    if (findLicense.apiKey?.toString() !== req.headers.authorization.toString()) {
+      return response.status(403).send({ status: responseKey.tokenInvalid, message: t('token-not-valid') })
     }
     const foldersArray = folders?.split('-')
     const foldersPath = !foldersArray ? '' : `${foldersArray?.join('/')}/`

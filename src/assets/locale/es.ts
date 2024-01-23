@@ -18,6 +18,7 @@ export const spanishLang = {
   'licenses_get-license_error': 'Error al obtener la licencia',
   'licenses_get-license_success': 'Licencia obtenida correctamente',
   'licenses_get-api-key_success': 'Api Key obtenida correctamente',
+  'licenses_get-media-token_success': 'Token obtenido correctamente',
   'licenses_get-my-licenses_success': 'Licencias obtenidas correctamente',
   'licenses_license-id-required': 'Falta el id de la licencia',
   'licenses_enabled-required': 'Falta el estado de la licencia',
@@ -31,7 +32,8 @@ export const spanishLang = {
   'license-expired': 'La licencia ha caducado',
   'project-repeated': 'El nombre del proyecto ya existe en la base de datos',
   'create-api-key-token-error': 'Error al crear el token de la licencia',
-  'api-key-not-found': 'Falta la Api-Key en la licencia',
+  'api-key-not-found': 'Falta la Api Key en la licencia',
+  'media-token-not-found': 'Falta el token en la licencia',
   'nickname-required': 'Falta el nickname del usuario',
 
   // Media
@@ -45,5 +47,6 @@ export const spanishLang = {
   'media-not-exists': 'El archivo que buscas no existe.',
   'unauthorized': 'No tienes permisos para realizar esta acción',
   'token-not-valid': 'El token no es válido',
+  'token-expired': 'El token ha expirado',
   'not-verified': 'El usuario no está verificado',
 }

@@ -23,6 +23,7 @@ export const spanishLang = {
   'licenses_license-id-required': 'Falta el id de la licencia',
   'licenses_enabled-required': 'Falta el estado de la licencia',
   'licenses_enable-license_success': 'Licencia activada correctamente',
+  'licenses_disable-license_success': 'Licencia desactivada correctamente',
   'licenses_update-license_success': 'Licencia actualizada correctamente',
   'license_not-enabled': 'La licencia no está activada',
   'license-not-enabled': 'La licencia no está activada',
@@ -40,6 +41,7 @@ export const spanishLang = {
   'create-media-success': 'Archivo creado correctamente',
   'create-media-error': 'Error al crear la imágen',
   'media-protected': 'El archivo está protegido',
+  'media-required': 'Falta el archivo en la petición',
   
   // Shared
   'server-error': 'Error del servidor',

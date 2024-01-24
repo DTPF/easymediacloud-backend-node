@@ -16,6 +16,7 @@ export const mediaKey = {
   apiKeyNotFound: 'api-key-not-found',
   mediaNotExists: 'media-not-exists',
   mediaProtected: 'media-protected',
+  mediaRequired: 'media-required',
 }
 
 export const licenseKey = {
@@ -41,7 +42,11 @@ export const licenseKey = {
   userLicenseError: 'user-license-error',
   createApiKeyTokenError: 'create-api-key-token-error',
   enabledRequired: 'enabled-required',
+  onlineRequired: 'online-required',
   enableLicenseSuccess: 'enable-license-success',
+  disableLicenseSuccess: 'disable-license-success',
+  disableOnlineSuccess: 'disable-online-success',
+  enableOnlineSuccess: 'enable-online-success',
   updateLicenseSuccess: 'update-license-success',
 }
 

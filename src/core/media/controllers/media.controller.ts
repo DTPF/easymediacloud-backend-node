@@ -21,8 +21,8 @@ const t = i18next.t
 
 export async function postMedia(req: IRequestUser | any, response: Response) {
   const { folders } = req.params
-  // Verify authorization token
   jwt.verify(req.headers.authorization, config.app.SECRET_KEY as string, async function (err: any, decodedApiKeyToken: IApiKey | any) {
+    // Verify authorization token
     if (err) {
       if (err.message === 'jwt expired') {
         return response.status(403).send({ status: responseKey.tokenExpired, message: t('token-expired') })
@@ -51,7 +51,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
       return response.status(403).send({ status: licenseKey.licenseExpired, message: t('license-expired') })
     }
     // Break if license is over max size
-    if (findLicense.subscription.maxSize && findLicense.size >= findLicense.subscription.maxSize ) {
+    if (findLicense.subscription.maxSize && findLicense.size >= findLicense.subscription.maxSize) {
       return response.status(403).send({ status: licenseKey.licenseOverMaxSize, message: t('license-over-max-size') })
     }
     // Break if license token is not valid
@@ -65,41 +65,102 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     if (!fs.existsSync(absolutePath)) {
       fs.mkdirSync(absolutePath, { recursive: true })
     }
-    // Upload image
+    // Upload Media
     multipart({ uploadDir: absolutePath })(req, response, async (err: any, res: Response) => {
       if (err) {
         return response.status(500).send({ status: mediaKey.createMediaError, message: t('create-media-error'), err: err })
       }
-      const imagePath = req.files?.image && req.files?.image?.path
-      // Image required
-      if (!req.files?.image || !req.files?.image.name || req.files?.image.size === 0) {
-        fs.unlinkSync(imagePath)
-        return response.status(404).send({ status: mediaKey.createMediaError, message: t('create-media-error') })
+      // Media required
+      if (req.files.media === undefined || req.files.media?.length === 0) {
+        return response.status(404).send({ status: mediaKey.mediaRequired, message: t('media-required') })
       }
-      const fileName = req.files.image.path.split('/')[req.files.image.path.split('/').length - 1]
-      const url = `${config.app.URL}/${imagePath}`
-      // Create media
-      const newMedia = new MediaModel({
-        license: findLicense._id,
-        directory: folders?.split('-').join('/'),
-        url: url,
-        fileName: fileName,
-        size: req.files.image.size,
-        sizeT: convertBytes(req.files.image.size),
-        enabled: true
-      })
-      try {
-        const mediaSaved: IMedia = await newMedia.save()
-        mediaSaved.__v = undefined
-        // Update license size and total files
-        await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, {
-          $inc: { totalFiles: 1, size: req.files.image.size },
-          sizeT: convertBytes(findLicense.size + req.files.image.size)
-        }, { new: true }).lean().exec()
-        return response.status(200).send({ status: mediaKey.createMediaSuccess, message: t('create-media-success'), media: mediaSaved })
-      } catch (err: any) {
-        fs.unlinkSync(imagePath)
-        return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
+      // One Media
+      if (req.files.media.length === undefined) {
+        const mediaPath = req.files.media && req.files.media.path
+        const mediaSize = req.files.media && req.files.media.size
+        if (!mediaPath) {
+          fs.unlinkSync(mediaPath)
+          return response.status(500).send({ status: mediaKey.createMediaError, message: t('create-media-error'), err: err })
+        }
+        const fileName = mediaPath.split('/')[mediaPath.split('/').length - 1]
+        const url = `${config.app.URL}/${mediaPath}`
+        // Create Media
+        const newMedia = new MediaModel({
+          license: findLicense._id,
+          directory: folders?.split('-').join('/'),
+          url: url,
+          fileName: fileName,
+          size: mediaSize,
+          sizeT: convertBytes(mediaSize),
+          enabled: true
+        })
+        try {
+          const mediaSaved: IMedia = await newMedia.save()
+          mediaSaved.__v = undefined
+          // Update license size and total files
+          await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, {
+            $inc: { totalFiles: 1, size: mediaSize },
+            sizeT: convertBytes(findLicense.size + mediaSize)
+          }, { new: true }).lean().exec()
+          return response.status(200).send({ status: mediaKey.createMediaSuccess, message: t('create-media-success'), media: mediaSaved })
+        } catch (err: any) {
+          fs.unlinkSync(mediaPath)
+          return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
+        } finally {
+          await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, { updatedAt: new Date() }).lean().exec()
+        }
+      } else {
+        // Multiple Medias
+        let medias: any[] = []
+        let mediaPaths: any[] = []
+        let totalSize = 0
+        let totalFiles = 0
+        for (const media of req.files.media) {
+          const mediaPath = media.path
+          const mediaSize = media.size
+          if (!mediaPath) {
+            fs.unlinkSync(mediaPath)
+            return response.status(500).send({ status: mediaKey.createMediaError, message: t('create-media-error'), err: err })
+          }
+          const fileName = mediaPath.split('/')[mediaPath.split('/').length - 1]
+          const url = `${config.app.URL}/${mediaPath}`
+          // Create media
+          const newMedia = new MediaModel({
+            license: findLicense._id,
+            directory: folders?.split('-').join('/'),
+            url: url,
+            fileName: fileName,
+            size: mediaSize,
+            sizeT: convertBytes(mediaSize),
+            enabled: true
+          })
+          try {
+            const mediaSaved: IMedia = await newMedia.save()
+            totalSize = totalSize + mediaSize
+            totalFiles = totalFiles + 1
+            mediaPaths.push(mediaPath)
+            medias.push(mediaSaved)
+          } catch (err: any) {
+            fs.unlinkSync(mediaPath)
+          }
+        }
+        try {
+          await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, {
+            $inc: { totalFiles: totalFiles, size: totalSize },
+            sizeT: convertBytes(findLicense.size + totalSize)
+          }, { new: true }).lean().exec()
+          await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, { updatedAt: new Date() }).lean().exec()
+          return response.status(200).send({
+            status: mediaKey.createMediaSuccess,
+            message: t('create-media-success'),
+            media: medias
+          })
+        } catch (err: any) {
+          for (const mediaPath of mediaPaths) {
+            fs.unlinkSync(mediaPath)
+          }
+          return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
+        }
       }
     })
   })

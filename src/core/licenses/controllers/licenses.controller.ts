@@ -225,7 +225,6 @@ export async function getMyLicenses(req: IRequestUser, res: Response) {
 			delete license.subscription.__v
 			delete license.subscription.user
 			delete license.subscription.license
-			delete license.subscription.expire
 		})
 		return res.status(200).send({ status: licenseKey.getLicenseSuccess, message: t('licenses_get-my-licenses_success'), licenses: findLicenses })
 	} catch (err) {
@@ -246,7 +245,11 @@ export async function enableLicense(req: IRequestUser, res: Response) {
 		if (!findLicense) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 		}
-		return res.status(200).send({ status: licenseKey.enableLicenseSuccess, message: t('licenses_enable-license_success'), license: findLicense })
+		return res.status(200).send({
+			status: enabled ? licenseKey.enableLicenseSuccess : licenseKey.disableLicenseSuccess,
+			message: enabled ? t('licenses_enable-license_success') : t('licenses_disable-license_success'),
+			license: findLicense
+		})
 	} catch (err) {
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
 	}
@@ -276,6 +279,29 @@ export async function updateLicenseProject(req: IRequestUser, res: Response) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 		}
 		return res.status(200).send({ status: licenseKey.updateLicenseSuccess, message: t('licenses_update-license_success'), license: findLicense })
+	} catch (err) {
+		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
+	}
+}
+
+export async function setOnlineLicense(req: IRequestUser, res: Response) {
+	const { licenseId, online } = req.body
+	if (!licenseId) {
+		return res.status(404).send({ status: licenseKey.licenseIdRequired, message: t('licenses_license-id-required') })
+	}
+	if (online === undefined) {
+		return res.status(404).send({ status: licenseKey.onlineRequired, message: t('licenses_enabled-required') })
+	}
+	try {
+		const findLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseId }, { online: online }, { new: true }).lean().exec()
+		if (!findLicense) {
+			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
+		}
+		return res.status(200).send({
+			status: online ? licenseKey.enableOnlineSuccess : licenseKey.disableOnlineSuccess,
+			message: online ? t('licenses_enable-license_success') : t('licenses_disable-license_success'),
+			license: findLicense
+		})
 	} catch (err) {
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
 	}

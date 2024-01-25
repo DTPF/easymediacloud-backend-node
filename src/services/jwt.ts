@@ -13,7 +13,7 @@ export async function createLicenseApiKeyJWT(project: string, nickname: string) 
     createToken: moment().unix(),
   };
   if (!config.app.SECRET_KEY) throw new Error('SECRET_KEY is not defined')
-  return jwt.sign(payload, config.app.SECRET_KEY) as string;
+  return jwt.sign(payload, config.app.SECRET_KEY as string);
 }
 
 export async function refreshLicenseApiKeyJWT(oldJwt: IApiKey) {
@@ -23,5 +23,5 @@ export async function refreshLicenseApiKeyJWT(oldJwt: IApiKey) {
     createToken: moment().unix(),
   };
   if (!config.app.SECRET_KEY) throw new Error('SECRET_KEY is not defined')
-  return jwt.sign(payload, config.app.SECRET_KEY) as string;
+  return jwt.sign(payload, config.app.SECRET_KEY as string);
 }

@@ -53,6 +53,17 @@ export const licenseKey = {
 export const subscriptionKey = {
   subscriptionNotFound: 'subscription-not-found',
   createSubscriptionError: 'create-subscription-error',
+  subscriptionIdRequired: 'subscription-id-required',
+  subscriptionDataRequired: 'subscription-data-required',
+  subscriptionTypeInvalid: 'subscription-type-not-valid',
+  subscriptionPriceInvalid: 'subscription-price-number-required',
+  subscriptionCurrencyInvalid: 'subscription-currency-string-required',
+  subscriptionMaxSizeInvalid: 'subscription-maxSize-number-required',
+  subscriptionExpireInvalid: 'subscription-expire-string-required',
+  subscriptionEnableInvalid: 'subscription-enable-boolean-required',
+  subscriptionUpdatedSuccess: 'subscription-updated-success',
+  subscriptionServerError: 'subscription-server-error',
+  subscriptionNotAllowed: 'subscription-update-not-allowed',
 }
 
 export const responseKey = {

@@ -14,6 +14,6 @@ api.
   patch("/set-online-license", [auth_0, is_verified], controller.setOnlineLicense).
   patch("/update-license-project", [auth_0, is_verified], controller.updateLicenseProject).
   //Pending
-  delete("/delete-license", [auth_0, ensure_admin], controller.deleteLicense)
+  delete("/delete-license", [auth_0, is_verified], controller.deleteLicense)
 
 module.exports = api

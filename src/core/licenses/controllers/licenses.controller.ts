@@ -2,8 +2,8 @@ import { Response } from "express";
 import LicenseModel from "../models/license.model";
 import UserModel from "../../user/models/user.model";
 import { mediaFolderPath } from "../../../utils/constants";
-import { responseKey, licenseKey, userKey } from "../../responseKey";
-import { IRequestUser } from "../../../interfaces/user.interface";
+import { responseKey, licenseKey, userKey, subscriptionKey } from "../../responseKey";
+import { IRequestUser, IUser } from "../../../interfaces/user.interface";
 import { createLicenseApiKeyJWT, refreshLicenseApiKeyJWT } from "../../../services/jwt";
 import jwt from "jsonwebtoken";
 import i18next from "i18next";
@@ -15,6 +15,8 @@ import { B500MB, FREE } from "../../subscriptions/subscriptionsConstants";
 import moment from "moment";
 import { ISubscription } from "../../../interfaces/subscription.interface";
 import { SUBSCRIPTION_POPULATE } from "../../modelsConstants";
+import MediaModel from "../../media/models/media.model";
+import { IMedia } from "../../../interfaces/media.interface";
 const config: ServerConfig = require('../../../config/config')
 const t = i18next.t
 const fs = require("fs-extra")
@@ -91,7 +93,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 				})
 				const subscriptionSaved: ISubscription = await newSubscription.save()
 				if (!subscriptionSaved) {
-					return res.status(404).send({ status: licenseKey.createSubscriptionError, message: t('licenses_create-subscription-error') })
+					return res.status(404).send({ status: subscriptionKey.createSubscriptionError, message: t('licenses_create-subscription-error') })
 				}
 				// Update license subscription
 				const updateLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseSaved._id }, { subscription: subscriptionSaved._id }, { new: true }).populate(SUBSCRIPTION_POPULATE).lean().exec()
@@ -107,7 +109,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 				return res.status(200).send({ status: licenseKey.createdSuccess, message: t('licenses_created-success'), license: updateLicense })
 			} catch (error) {
 				if (error) {
-					return res.status(404).send({ status: licenseKey.createSubscriptionError, message: t('licenses_create-subscription-error'), error: error })
+					return res.status(404).send({ status: subscriptionKey.createSubscriptionError, message: t('licenses_create-subscription-error'), error: error })
 				}
 			}
 			// Return license
@@ -269,12 +271,12 @@ export async function updateLicenseProject(req: IRequestUser, res: Response) {
 		return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 	}
 
-	const licenseProjectExists = await findUserLicenses.find((license: any) => license.project === project)
+	const licenseProjectExists = findUserLicenses.find((license: ILicense) => license.project === project)
 	if (licenseProjectExists) {
 		return res.status(404).send({ status: licenseKey.repeatedProject, message: t('project-repeated') })
 	}
 	try {
-		const findLicense = await LicenseModel.findOneAndUpdate({ _id: licenseId }, { project: project }, { new: true }).lean().exec()
+		const findLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseId }, { project: project }, { new: true }).lean().exec()
 		if (!findLicense) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 		}
@@ -307,4 +309,54 @@ export async function setOnlineLicense(req: IRequestUser, res: Response) {
 	}
 }
 
-export async function deleteLicense(req: IRequestUser, res: Response) { }
+export async function deleteLicense(req: IRequestUser, res: Response) {
+	const { licenseId } = req.body
+	if (!licenseId) {
+		return res.status(404).send({ status: licenseKey.licenseIdRequired, message: t('licenses_license-id-required') })
+	}
+	try {
+		// Find user license
+		const findLicense: ILicense | undefined = req.user.licenses.find((license: ILicense) => license._id == licenseId)
+		if (!findLicense) {
+			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
+		}
+		// Update user licenses
+		const findUser: IUser = await UserModel.findOneAndUpdate({ auth0Id: req.user.auth0Id }, { $pull: { licenses: licenseId } }, { new: true }).lean().exec()
+		if (!findUser) {
+			return res.status(404).send({ status: licenseKey.userLicenseError, message: t('user-not-found') })
+		}
+		// Find subscription
+		const findSubscription: ISubscription = await SubscriptionModel.findOne({ license: licenseId }).lean().exec()
+		if (!findSubscription) {
+			return res.status(404).send({ status: subscriptionKey.subscriptionNotFound, message: t('subscription-not-found') })
+		}
+		// Delete subscription if type is FREE
+		if (findSubscription.type === FREE) {
+			const deleteSubscription = await SubscriptionModel.findOneAndDelete({ license: licenseId }).lean().exec()
+			if (!deleteSubscription) {
+				return res.status(404).send({ status: subscriptionKey.subscriptionNotFound, message: t('subscription-not-found') })
+			}
+		}
+		// Delete license
+		const deleteLicense: ILicense & { filesDeleted?: number } = await LicenseModel.findOneAndDelete({ _id: licenseId }).lean().exec()
+		if (!deleteLicense) {
+			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
+		}
+		// Delete media
+		const deleteManyMedia: IMedia & { deletedCount?: number } = await MediaModel.deleteMany({ license: licenseId }).lean().exec()
+		if (!deleteManyMedia) {
+			return res.status(404).send({ status: 'mediaKey.mediaNotFound', message: t('media-not-found') })
+		}
+		// Delete files
+		await fs.remove(`${mediaFolderPath}/${req.user.nickname}/${findLicense.project}`)
+		deleteLicense.__v = undefined
+		deleteLicense.filesDeleted = deleteManyMedia.deletedCount
+		return res.status(200).send({
+			status: licenseKey.deleteLicenseSuccess,
+			message: t('licenses_delete-license_success'),
+			license: deleteLicense
+		})
+	} catch (err) {
+		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
+	}
+}

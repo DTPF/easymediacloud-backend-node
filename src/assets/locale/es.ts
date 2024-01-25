@@ -36,6 +36,10 @@ export const spanishLang = {
   'api-key-not-found': 'Falta la Api Key en la licencia',
   'media-token-not-found': 'Falta el token en la licencia',
   'nickname-required': 'Falta el nickname del usuario',
+  'licenses_delete-license_success': 'Licencia y archivos borrados correctamente',
+
+  // Subscription
+  'subscription-not-found': 'La suscripción no existe en la base de datos',
 
   // Media
   'create-media-success': 'Archivo creado correctamente',

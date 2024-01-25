@@ -22,7 +22,6 @@ export const mediaKey = {
 export const licenseKey = {
   projectRequired: 'project-required',
   createdSuccess: 'license-created-success',
-  createSubscriptionError: 'create-subscription-error',
   repeatedProject: 'repeated-project',
   repeatedLicense: 'repeated-license',
   createDirectoryError: 'create-directory-error',
@@ -48,6 +47,12 @@ export const licenseKey = {
   disableOnlineSuccess: 'disable-online-success',
   enableOnlineSuccess: 'enable-online-success',
   updateLicenseSuccess: 'update-license-success',
+  deleteLicenseSuccess: 'delete-license-success',
+}
+
+export const subscriptionKey = {
+  subscriptionNotFound: 'subscription-not-found',
+  createSubscriptionError: 'create-subscription-error',
 }
 
 export const responseKey = {

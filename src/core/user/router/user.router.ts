@@ -13,7 +13,7 @@ api.
   patch("/update-user-avatar", [auth_0, md_upload_avatar, is_verified], controller.updateUserAvatar).
   get("/user-avatar/:imageName", controller.getAvatarImage).
   get("/get-users", [auth_0, ensure_admin], controller.getUsers).
-  patch("/update-role", [auth_0, ensure_admin], controller.updateRole).
+  patch("/update-role", [auth_0, ensure_admin], controller.updateRole)
   // Pending
   // delete("/delete-user", [auth_0, hydrate], controller.deleteUserSelf)
 

@@ -2,7 +2,7 @@
   "name": "mediacloud_node",
   "version": "1.0.0",
   "description": "NodeJS Backend for mediacloud.com",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/index.js",

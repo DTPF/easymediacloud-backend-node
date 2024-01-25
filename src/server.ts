@@ -14,6 +14,7 @@ const path = require("path")
 const userRoutes = require("./core/user/router/user.router");
 const mediaRoutes = require("./core/media/router/media.router");
 const licensesRoutes = require("./core/licenses/router/licenses.router");
+const subscriptionRoutes = require("./core/subscriptions/router/subscriptions.router");
 
 i18next.init({
   lng: 'es',
@@ -52,6 +53,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(`/api/${config.app.API_VERSION}`, userRoutes);
 app.use(`/api/${config.app.API_VERSION}`, mediaRoutes);
 app.use(`/api/${config.app.API_VERSION}`, licensesRoutes);
+app.use(`/api/${config.app.API_VERSION}`, subscriptionRoutes);
 if (process.env.NODE_ENV === productionStage) {
   app.get("/client/service-worker.js", (req, res) => {
     res.sendFile(path.resolve(__dirname, "client", "service-worker.js"));

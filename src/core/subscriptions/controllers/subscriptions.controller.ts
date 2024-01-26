@@ -15,9 +15,9 @@ export async function customSubscription(req: IRequestUser, res: Response) {
   if (!subscriptionId) {
     return res.status(400).send({ status: subscriptionKey.subscriptionIdRequired, message: t('subscription-id_required') })
   }
-  const { type, price, currency, maxSize, expire, enabled } = req.body
+  const { type, price, currency, maxSize, expire, enabled, requestsPerMonth } = req.body
   // Return error if no data is provided
-  if (!type && !price && !currency && !maxSize && !expire && !enabled) {
+  if (!type && !price && !currency && !maxSize && !expire && !enabled && !requestsPerMonth) {
     return res.status(400).send({ status: subscriptionKey.subscriptionDataRequired, message: t('subscription_data_required') })
   }
   // Return error if type is not valid
@@ -78,7 +78,10 @@ export async function renewFreeSubscription(req: IRequestUser, res: Response) {
     return res.status(403).send({ status: subscriptionKey.subscriptionNotAllowed, message: t('subscription_action_not_allowed') })
   }
   try {
-    const updateSubscription: ISubscription = await SubscriptionModel.findOneAndUpdate({ _id: subscriptionId }, { expire: moment(findSubscription.expire).add(1, 'year') }, { new: true }).lean().exec()
+    const updateSubscription: ISubscription = await SubscriptionModel.findOneAndUpdate(
+      { _id: subscriptionId },
+      { expire: moment(findSubscription.expire).add(1, 'year') },
+      { new: true }).lean().exec()
     if (!updateSubscription) {
       return res.status(404).send({ status: subscriptionKey.subscriptionNotFound, message: t('subscription-not-found') })
     }

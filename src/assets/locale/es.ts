@@ -31,12 +31,13 @@ export const spanishLang = {
   'license-offline': 'La licencia está offline',
   'license-over-max-size': 'La licencia ha superado el límite de tamaño',
   'license-expired': 'La licencia ha caducado',
-  'project-repeated': 'El nombre del proyecto ya existe en la base de datos',
+  'project-repeated': 'El nombre del proyecto ya existe, prueba con otro',
   'create-api-key-token-error': 'Error al crear el token de la licencia',
   'api-key-not-found': 'Falta la Api Key en la licencia',
   'media-token-not-found': 'Falta el token en la licencia',
   'nickname-required': 'Falta el nickname del usuario',
   'licenses_delete-license_success': 'Licencia y archivos borrados correctamente',
+  'license-over-max-requests': 'La licencia ha superado el límite de peticiones',
 
   // Subscription
   'subscription-not-found': 'La suscripción no existe en la base de datos',

@@ -48,6 +48,7 @@ export const licenseKey = {
   enableOnlineSuccess: 'enable-online-success',
   updateLicenseSuccess: 'update-license-success',
   deleteLicenseSuccess: 'delete-license-success',
+  licenseOverMaxRequests: 'license-over-max-requests',
 }
 
 export const subscriptionKey = {

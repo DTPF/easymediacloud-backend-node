@@ -96,13 +96,17 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
         })
         try {
           const mediaSaved: IMedia = await newMedia.save()
-          mediaSaved.__v = undefined
+          const mediaObject = {
+            url: mediaSaved.url,
+            size: mediaSaved.sizeT,
+            createdAt: mediaSaved.createdAt,
+          }
           // Update license size and total files
           await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, {
             $inc: { totalFiles: 1, size: mediaSize },
             sizeT: convertBytes(findLicense.size + mediaSize)
           }, { new: true }).lean().exec()
-          return response.status(200).send({ status: mediaKey.createMediaSuccess, message: t('create-media-success'), media: mediaSaved })
+          return response.status(200).send({ status: mediaKey.createMediaSuccess, message: t('create-media-success'), media: mediaObject })
         } catch (err: any) {
           fs.unlinkSync(mediaPath)
           return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
@@ -138,8 +142,13 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
             const mediaSaved: IMedia = await newMedia.save()
             totalSize = totalSize + mediaSize
             totalFiles = totalFiles + 1
+            const mediaObject = {
+              url: mediaSaved.url,
+              size: mediaSaved.sizeT,
+              createdAt: mediaSaved.createdAt,
+            }
             mediaPaths.push(mediaPath)
-            medias.push(mediaSaved)
+            medias.push(mediaObject)
           } catch (err: any) {
             fs.unlinkSync(mediaPath)
           }
@@ -182,7 +191,7 @@ export async function getMedia(req: Request, res: Response) {
     return res.status(403).send({ status: mediaKey.mediaProtected, message: t('media-protected') })
   }
   // Break if license is offline
-  if (findMedia && findMedia.license.online === false) {
+  if (findMedia.license?.online === false) {
     return res.status(403).send({ status: licenseKey.licenseOffline, message: t('license-offline') })
   }
   const findSubscription = await SubscriptionModel.findOne({ _id: findMedia.license.subscription }).lean().exec()

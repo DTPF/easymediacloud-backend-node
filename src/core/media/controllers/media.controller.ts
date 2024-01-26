@@ -54,6 +54,10 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     if (findLicense.subscription.maxSize && findLicense.size >= findLicense.subscription.maxSize) {
       return response.status(403).send({ status: licenseKey.licenseOverMaxSize, message: t('license-over-max-size') })
     }
+    // Break if license is over max requests
+    if (findLicense.requests >= findLicense.subscription.requestsPerMonth) {
+      return response.status(403).send({ status: licenseKey.licenseOverMaxRequests, message: t('license-over-max-requests') })
+    }
     // Break if license token is not valid
     if (findLicense.apiKey?.toString() !== req.headers.authorization.toString()) {
       return response.status(403).send({ status: responseKey.tokenInvalid, message: t('token-not-valid') })
@@ -74,10 +78,10 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
       if (req.files.media === undefined || req.files.media?.length === 0) {
         return response.status(404).send({ status: mediaKey.mediaRequired, message: t('media-required') })
       }
-      // One Media
+      // ONE MEDIA
       if (req.files.media.length === undefined) {
-        const mediaPath = req.files.media && req.files.media.path
-        const mediaSize = req.files.media && req.files.media.size
+        const mediaPath = req.files.media.path
+        const mediaSize = req.files.media.size
         if (!mediaPath) {
           fs.unlinkSync(mediaPath)
           return response.status(500).send({ status: mediaKey.createMediaError, message: t('create-media-error'), err: err })
@@ -114,7 +118,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
           await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, { updatedAt: new Date() }).lean().exec()
         }
       } else {
-        // Multiple Medias
+        // MULTIPLE MEDIA
         let medias: any[] = []
         let mediaPaths: any[] = []
         let totalSize = 0
@@ -155,7 +159,10 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
         }
         try {
           await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, {
-            $inc: { totalFiles: totalFiles, size: totalSize },
+            $inc: {
+              totalFiles: totalFiles,
+              size: totalSize
+            },
             sizeT: convertBytes(findLicense.size + totalSize)
           }, { new: true }).lean().exec()
           await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, { updatedAt: new Date() }).lean().exec()
@@ -199,15 +206,25 @@ export async function getMedia(req: Request, res: Response) {
   if (moment().isBefore(moment(findSubscription.expire)) === false) {
     return res.status(403).send({ status: licenseKey.licenseExpired, message: t('license-expired') })
   }
+  // Break if license is over max requests
+  if (findMedia.license.requests >= findSubscription.requestsPerMonth) {
+    return res.status(403).send({ status: licenseKey.licenseOverMaxRequests, message: t('license-over-max-requests') })
+  }
   const foldersArray = folders?.split('-')
   const foldersPath = !foldersArray ? '' : `${foldersArray?.join('/')}/`
   const filePath = `${mediaFolderPath}/${project}/${foldersPath}${media}`
   // Chek if exists and return media
-  await fs.exists(filePath, (exists: boolean) => {
-    if (!exists) {
-      return res.status(404).send({ status: mediaKey.mediaNotExists, message: t('media-not-exists') })
-    } else {
-      return res.sendFile(path.resolve(filePath))
-    }
-  })
+  try {
+    await fs.exists(filePath, (exists: boolean) => {
+      if (!exists) {
+        return res.status(404).send({ status: mediaKey.mediaNotExists, message: t('media-not-exists') })
+      } else {
+        return res.sendFile(path.resolve(filePath))
+      }
+    })
+  } catch (err) {
+    return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
+  } finally {
+    await LicenseModel.findOneAndUpdate({ _id: findMedia.license._id }, { $inc: { requests: 1 } }).lean().exec()
+  }
 }

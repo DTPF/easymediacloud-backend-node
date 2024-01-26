@@ -8,11 +8,9 @@ import { createLicenseApiKeyJWT, refreshLicenseApiKeyJWT } from "../../../servic
 import jwt from "jsonwebtoken";
 import i18next from "i18next";
 import { ServerConfig } from "../../../config/config";
-import { IApiKey, ILicense } from "../../../interfaces/license.interface";
-import { convertBytes } from "../../../utils/getFolderSize";
+import { IApiKey, ILicense, ILicenseResponse } from "../../../interfaces/license.interface";
 import SubscriptionModel from "../../subscriptions/models/subscription.model";
-import { B500MB, FREE } from "../../subscriptions/subscriptionsConstants";
-import moment from "moment";
+import { FREE } from "../../subscriptions/subscriptionsConstants";
 import { ISubscription } from "../../../interfaces/subscription.interface";
 import { SUBSCRIPTION_POPULATE } from "../../modelsConstants";
 import MediaModel from "../../media/models/media.model";
@@ -61,8 +59,6 @@ export async function createLicense(req: IRequestUser, res: Response) {
 				user: req.user._id,
 				project,
 				apiKey,
-				enabled: true,
-				online: true
 			})
 			// Save license
 			const licenseSaved: ILicense = await newLicense.save()
@@ -74,22 +70,12 @@ export async function createLicense(req: IRequestUser, res: Response) {
 			if (!findUser) {
 				return res.status(404).send({ status: licenseKey.userLicenseError, message: t('user-not-found') })
 			}
-			licenseSaved.__v = undefined
-			licenseSaved.enabled = undefined
-			licenseSaved.user = undefined
-			licenseSaved.apiKey = undefined
 			// Create subscription
 			try {
 				const newSubscription = new SubscriptionModel({
 					user: req.user._id,
 					license: licenseSaved._id,
-					type: FREE,
-					price: 0,
 					currency: '€',
-					maxSize: B500MB,
-					maxSizeT: convertBytes(B500MB),
-					expire: moment().add(1, 'year'),
-					enabled: true
 				})
 				const subscriptionSaved: ISubscription = await newSubscription.save()
 				if (!subscriptionSaved) {
@@ -97,16 +83,9 @@ export async function createLicense(req: IRequestUser, res: Response) {
 				}
 				// Update license subscription
 				const updateLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseSaved._id }, { subscription: subscriptionSaved._id }, { new: true }).populate(SUBSCRIPTION_POPULATE).lean().exec()
-				delete updateLicense.__v
-				delete updateLicense.apiKey
-				delete updateLicense.user
-				delete updateLicense.subscription._id
-				delete updateLicense.subscription.__v
-				delete updateLicense.subscription.user
-				delete updateLicense.subscription.license
-				delete updateLicense.subscription.expire
+				const licenseFiltered = await cleanLicenseResponse(updateLicense)
 				// Return license
-				return res.status(200).send({ status: licenseKey.createdSuccess, message: t('licenses_created-success'), license: updateLicense })
+				return res.status(200).send({ status: licenseKey.createdSuccess, message: t('licenses_created-success'), license: licenseFiltered })
 			} catch (error) {
 				if (error) {
 					return res.status(404).send({ status: subscriptionKey.createSubscriptionError, message: t('licenses_create-subscription-error'), error: error })
@@ -135,18 +114,12 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 		if (!decryptedApiKey) {
 			return res.status(404).send({ status: licenseKey.getLicenseError, message: t('licenses_get-license_error') })
 		}
-		delete findLicense.apiKey
-		delete findLicense.__v
-		delete findLicense.subscription._id
-		delete findLicense.subscription.__v
-		delete findLicense.subscription.user
-		delete findLicense.subscription.license
-		delete findLicense.subscription.expire
+		const licenseFiltered = await cleanLicenseResponse(findLicense)
 		// Return license
 		return res.status(200).send({
 			status: licenseKey.getLicenseSuccess,
 			message: t('licenses_get-license_success'),
-			license: { ...findLicense, project: decryptedApiKey.project }
+			license: { ...licenseFiltered, project: decryptedApiKey.project }
 		})
 	} catch (err) {
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
@@ -220,13 +193,8 @@ export async function refreshLicenseToken(req: IRequestUser, res: Response) {
 export async function getMyLicenses(req: IRequestUser, res: Response) {
 	try {
 		const findLicenses: ILicense[] = await LicenseModel.find({ user: req.user._id.toString() }).populate(SUBSCRIPTION_POPULATE).lean().exec()
-		findLicenses.forEach((license: ILicense) => {
-			delete license.__v
-			delete license.user
-			delete license.apiKey
-			delete license.subscription.__v
-			delete license.subscription.user
-			delete license.subscription.license
+		findLicenses.forEach(async (license: ILicense) => {
+			await cleanLicenseResponse(license)
 		})
 		return res.status(200).send({ status: licenseKey.getLicenseSuccess, message: t('licenses_get-my-licenses_success'), licenses: findLicenses })
 	} catch (err) {
@@ -265,12 +233,11 @@ export async function updateLicenseProject(req: IRequestUser, res: Response) {
 	if (!project) {
 		return res.status(404).send({ status: licenseKey.projectRequired, message: t('data-required') })
 	}
-
 	const findUserLicenses: ILicense[] = await LicenseModel.find({ user: req.user._id }).lean().exec()
 	if (findUserLicenses.length === 0) {
 		return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 	}
-
+	// Check if exists a license with the same project name
 	const licenseProjectExists = findUserLicenses.find((license: ILicense) => license.project === project)
 	if (licenseProjectExists) {
 		return res.status(404).send({ status: licenseKey.repeatedProject, message: t('project-repeated') })
@@ -359,4 +326,15 @@ export async function deleteLicense(req: IRequestUser, res: Response) {
 	} catch (err) {
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
 	}
+}
+
+async function cleanLicenseResponse(license: ILicenseResponse) {
+	delete license.user
+	delete license.apiKey
+	delete license.subscription._id
+	delete license.subscription.user
+	delete license.subscription.license
+	delete license.subscription.__v
+	delete license.__v
+	return license as ILicense
 }

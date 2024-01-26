@@ -31,15 +31,11 @@ export async function createLicense(req: IRequestUser, res: Response) {
 	if (licenseProjectExists) {
 		return res.status(404).send({ status: licenseKey.repeatedProject, message: t('project-repeated') })
 	}
-	// Check if user has a nickname
-	if (!req.user.nickname) {
-		return res.status(404).send({ status: userKey.nicknameRequired, message: t('nickname-required') })
-	}
 	// Create media folder if not exists
 	if (!fs.existsSync(mediaFolderPath)) {
 		fs.mkdirSync(mediaFolderPath)
 	}
-	const mainFolderName = req.user.nickname
+	const mainFolderName = req.user.folderId
 	// Create main folder if not exists
 	if (!fs.existsSync(`${mediaFolderPath}/${mainFolderName}`)) {
 		fs.mkdirSync(`${mediaFolderPath}/${mainFolderName}`)

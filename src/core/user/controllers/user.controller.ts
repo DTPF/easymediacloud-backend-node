@@ -5,6 +5,7 @@ import { responseKey, userKey } from "../../responseKey";
 import { IAuth0User, IUser, IRequestUser } from "../../../interfaces/user.interface";
 import i18next from "i18next";
 import { LICENSES_POPULATE } from "../../modelsConstants";
+import mongoose from "mongoose";
 const fs = require("fs-extra")
 const path = require("path")
 const t = i18next.t
@@ -46,6 +47,7 @@ export async function registerLoginUser(req: IRequestUser, res: Response) {
 				language: user.locale ?? 'es',
 				role: userRole,
 				isVerified: user.email_verified,
+				folderId: new mongoose.Types.ObjectId,
 			})
 			try {
 				const userSaved = await newUser.save()

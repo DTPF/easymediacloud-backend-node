@@ -32,7 +32,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     if (!decodedApiKeyToken) {
       return response.status(404).send({ status: mediaKey.apiKeyNotFound, message: t('api-key-not-found') })
     }
-    const { project, nickname } = decodedApiKeyToken
+    const { id, project } = decodedApiKeyToken as IApiKey
     // Find license
     const findLicense: ILicense = await LicenseModel.findOne({ project: project }).populate(SUBSCRIPTION_POPULATE).lean().exec()
     if (!findLicense || !decodedApiKeyToken.apiKey) {
@@ -64,7 +64,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     }
     const foldersArray = folders?.split('-')
     const foldersPath = !foldersArray ? '' : `${foldersArray?.join('/')}/`
-    const absolutePath = `${mediaFolderPath}/${nickname}/${project}/${foldersPath}`
+    const absolutePath = `${mediaFolderPath}/${id}/${project}/${foldersPath}`
     // Create directory if not exists
     if (!fs.existsSync(absolutePath)) {
       fs.mkdirSync(absolutePath, { recursive: true })

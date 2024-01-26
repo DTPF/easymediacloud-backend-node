@@ -16,6 +16,7 @@ export interface IUser {
   createdAt: Date
   updatedAt: Date
   lastLogin: Date
+  folderId: Object | string
   __v: string | any
 }
 

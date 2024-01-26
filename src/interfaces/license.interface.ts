@@ -20,8 +20,8 @@ export interface ILicense {
 }
 
 export interface IApiKey {
+  id: string
   project: string
-  nickname: string
   apiKey: string | ObjectId
   createToken: Date
 }

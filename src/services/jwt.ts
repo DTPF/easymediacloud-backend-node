@@ -5,10 +5,10 @@ import moment from "moment";
 import { IApiKey } from "../interfaces/license.interface";
 const config: ServerConfig = require('../config/config')
 
-export async function createLicenseApiKeyJWT(project: string, nickname: string) {
+export async function createLicenseApiKeyJWT(project: string, mainFolderName: string | Object) {
   const payload = {
+    id: mainFolderName.toString(),
     project: project,
-    nickname: nickname,
     apiKey: new mongoose.Types.ObjectId,
     createToken: moment().unix(),
   };

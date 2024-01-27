@@ -54,7 +54,7 @@ export const spanishLang = {
   'subscription_action_not_allowed': 'No tienes permisos para realizar esta acción',
 
   // Media
-  'create-media-success': 'Archivo creado correctamente',
+  'create-media-success': 'Archivo/s creado correctamente',
   'create-media-error': 'Error al crear la imágen',
   'media-protected': 'El archivo está protegido',
   'media-required': 'Falta el archivo en la petición',

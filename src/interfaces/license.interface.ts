@@ -26,12 +26,11 @@ export interface IApiKeyToken {
   createdAt: Date
   updatedAt: Date
 }
-
-export interface ILicenseResponse {
+export interface ILicenseResponse extends ILicense{
   _id: string
-  user?: IUser
+  user: IUser | any
   project: string
-  apiKey?: string
+  apiKey: string | any
   enabled: boolean
   online: boolean
   size: number

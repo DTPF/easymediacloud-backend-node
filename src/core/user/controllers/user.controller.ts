@@ -41,13 +41,11 @@ export async function registerLoginUser(req: IRequestUser, res: Response) {
 				auth0Id: user.sub,
 				name: '',
 				lastname: '',
-				nickname: '',
 				email: user.email,
 				avatar: user.picture ?? '',
 				language: user.locale ?? 'es',
 				role: userRole,
 				isVerified: user.email_verified,
-				folderId: new mongoose.Types.ObjectId,
 			})
 			try {
 				const userSaved = await newUser.save()

@@ -8,7 +8,7 @@ import { createLicenseApiKeyJWT, refreshLicenseApiKeyJWT } from "../../../servic
 import jwt from "jsonwebtoken";
 import i18next from "i18next";
 import { ServerConfig } from "../../../config/config";
-import { IApiKey, ILicense, ILicenseResponse } from "../../../interfaces/license.interface";
+import { IApiKeyToken, ILicense, ILicenseResponse } from "../../../interfaces/license.interface";
 import SubscriptionModel from "../../subscriptions/models/subscription.model";
 import { FREE } from "../../subscriptions/subscriptionsConstants";
 import { ISubscription } from "../../../interfaces/subscription.interface";
@@ -32,16 +32,16 @@ export async function createLicense(req: IRequestUser, res: Response) {
 		return res.status(404).send({ status: licenseKey.repeatedProject, message: t('project-repeated') })
 	}
 	// Create media folder if not exists
-	if (!fs.existsSync(mediaFolderPath)) {
-		fs.mkdirSync(mediaFolderPath)
+	if (!fs.existsSync(`./${mediaFolderPath}`)) {
+		fs.mkdirSync(`./${mediaFolderPath}`)
 	}
-	const mainFolderName = req.user.folderId
+	const mainFolderName = req.user._id.toString()
 	// Create main folder if not exists
-	if (!fs.existsSync(`${mediaFolderPath}/${mainFolderName}`)) {
-		fs.mkdirSync(`${mediaFolderPath}/${mainFolderName}`)
+	if (!fs.existsSync(`./${mediaFolderPath}/${mainFolderName}`)) {
+		fs.mkdirSync(`./${mediaFolderPath}/${mainFolderName}`)
 	}
 	// Create project folder
-	fs.mkdir(`${mediaFolderPath}/${mainFolderName}/${project}`, async function (err: any) {
+	fs.mkdir(`./${mediaFolderPath}/${mainFolderName}/${project}`, async function (err: any) {
 		if (err) {
 			return res.status(404).send({ status: licenseKey.createDirectoryError, message: t('licenses_create-directory-error') })
 		}
@@ -106,8 +106,8 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 		}
 		// Decrypt license api key
-		const decryptedApiKey: IApiKey = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKey
-		if (!decryptedApiKey) {
+		const decryptedApiKeyToken: IApiKeyToken = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKeyToken
+		if (!decryptedApiKeyToken) {
 			return res.status(404).send({ status: licenseKey.getLicenseError, message: t('licenses_get-license_error') })
 		}
 		const licenseFiltered = await cleanLicenseResponse(findLicense)
@@ -115,7 +115,7 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 		return res.status(200).send({
 			status: licenseKey.getLicenseSuccess,
 			message: t('licenses_get-license_success'),
-			license: { ...licenseFiltered, project: decryptedApiKey.project }
+			license: { ...licenseFiltered, project: decryptedApiKeyToken.project }
 		})
 	} catch (err) {
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
@@ -146,11 +146,11 @@ export async function getLicenseTokenDecrypted(req: IRequestUser, res: Response)
 		if (!findLicense?.apiKey || findLicense.user?.toString() !== req.user._id.toString()) {
 			return res.status(404).send({ status: licenseKey.mediaTokenNotFound, message: t('media-token-not-found') })
 		}
-		const decryptedApiKey: IApiKey = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKey
+		const decryptedApiKeyToken: IApiKeyToken = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKeyToken
 		return res.status(200).send({
 			status: licenseKey.getMediaTokenSuccess,
 			message: t('licenses_get-media-token_success'),
-			mediaTokenDecrypted: decryptedApiKey,
+			mediaTokenDecrypted: decryptedApiKeyToken,
 		})
 	} catch (err) {
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
@@ -164,11 +164,11 @@ export async function refreshLicenseToken(req: IRequestUser, res: Response) {
 		if (!findLicense?.apiKey || findLicense.user?.toString() !== req.user._id.toString()) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('license-not-found') })
 		}
-		const decryptedToken: IApiKey = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKey
-		if (!decryptedToken) {
+		const decryptedApiKeyToken: IApiKeyToken = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKeyToken
+		if (!decryptedApiKeyToken) {
 			return res.status(404).send({ status: licenseKey.getLicenseError, message: t('licenses_get-license_error') })
 		}
-		const refreshToken = await refreshLicenseApiKeyJWT(decryptedToken)
+		const refreshToken = await refreshLicenseApiKeyJWT(decryptedApiKeyToken)
 		if (!refreshToken) {
 			return res.status(400).send({ status: licenseKey.createApiKeyTokenError, message: t('create-api-key-token-error') })
 		}
@@ -311,7 +311,7 @@ export async function deleteLicense(req: IRequestUser, res: Response) {
 			return res.status(404).send({ status: 'mediaKey.mediaNotFound', message: t('media-not-found') })
 		}
 		// Delete files
-		await fs.remove(`${mediaFolderPath}/${req.user.nickname}/${findLicense.project}`)
+		await fs.remove(`./${mediaFolderPath}/${req.user._id}/${findLicense.project}`)
 		deleteLicense.__v = undefined
 		deleteLicense.filesDeleted = deleteManyMedia.deletedCount
 		return res.status(200).send({

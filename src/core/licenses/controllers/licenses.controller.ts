@@ -2,7 +2,7 @@ import { Response } from "express";
 import LicenseModel from "../models/license.model";
 import UserModel from "../../user/models/user.model";
 import { mediaFolderPath } from "../../../utils/constants";
-import { responseKey, licenseKey, userKey, subscriptionKey } from "../../responseKey";
+import { responseKey, licenseKey, subscriptionKey } from "../../responseKey";
 import { IRequestUser, IUser } from "../../../interfaces/user.interface";
 import { createLicenseApiKeyJWT, refreshLicenseApiKeyJWT } from "../../../services/jwt";
 import jwt from "jsonwebtoken";
@@ -62,7 +62,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 				return res.status(404).send({ status: licenseKey.createLicenseError, message: t('licenses_create-license-error') })
 			}
 			// Update user licenses
-			const findUser = await UserModel.findOneAndUpdate({ auth0Id: req.user.auth0Id }, { $push: { licenses: licenseSaved._id } }, { new: true }).lean().exec()
+			const findUser: IUser = await UserModel.findOneAndUpdate({ auth0Id: req.user.auth0Id }, { $push: { licenses: licenseSaved._id } }, { new: true }).lean().exec()
 			if (!findUser) {
 				return res.status(404).send({ status: licenseKey.userLicenseError, message: t('user-not-found') })
 			}
@@ -78,7 +78,10 @@ export async function createLicense(req: IRequestUser, res: Response) {
 					return res.status(404).send({ status: subscriptionKey.createSubscriptionError, message: t('licenses_create-subscription-error') })
 				}
 				// Update license subscription
-				const updateLicense: ILicense = await LicenseModel.findOneAndUpdate({ _id: licenseSaved._id }, { subscription: subscriptionSaved._id }, { new: true }).populate(SUBSCRIPTION_POPULATE).lean().exec()
+				const updateLicense: ILicense = await LicenseModel.findOneAndUpdate(
+					{ _id: licenseSaved._id },
+					{ subscription: subscriptionSaved._id },
+					{ new: true }).populate(SUBSCRIPTION_POPULATE).lean().exec()
 				const licenseFiltered = await cleanLicenseResponse(updateLicense)
 				// Return license
 				return res.status(200).send({ status: licenseKey.createdSuccess, message: t('licenses_created-success'), license: licenseFiltered })

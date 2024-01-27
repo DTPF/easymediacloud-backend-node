@@ -19,11 +19,12 @@ export interface ILicense {
   __v: any
 }
 
-export interface IApiKey {
+export interface IApiKeyToken {
   id: string
   project: string
   apiKey: string | ObjectId
-  createToken: Date
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface ILicenseResponse {

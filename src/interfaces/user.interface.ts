@@ -1,12 +1,12 @@
 import { Request } from "express"
 import { ILicense } from "./license.interface"
+import mongoose from "mongoose"
 
 export interface IUser {
-  _id: string
+  _id: mongoose.Types.ObjectId | string
   auth0Id: string
   name: string
   lastname: string
-  nickname: string
   email: string
   role: string
   isVerified: boolean
@@ -16,7 +16,6 @@ export interface IUser {
   createdAt: Date
   updatedAt: Date
   lastLogin: Date
-  folderId: Object | string
   __v: string | any
 }
 

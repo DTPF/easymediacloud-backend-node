@@ -4,8 +4,8 @@ const api = express.Router()
 
 api
 	.post("/post-media/:folders?", MediaController.postMedia)
-	.get("/media/:project/:media", MediaController.getMedia)
-	.get("/media/:project/:folders/:media", MediaController.getMedia)
+	.get("/media/:mainFolder/:project/:media", MediaController.getMedia)
+	.get("/media/:mainFolder/:project/:folders/:media", MediaController.getMedia)
 	// Pending
 	// .delete("/delete-media/:mediaId", MediaController.deleteMedia)
 

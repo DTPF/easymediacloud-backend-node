@@ -8,7 +8,7 @@ import LicenseModel from "../../licenses/models/license.model";
 import MediaModel from "../models/media.model";
 import { ServerConfig } from "../../../config/config";
 import { licenseKey, mediaKey, responseKey } from "../../responseKey";
-import { IApiKey, ILicense } from "../../../interfaces/license.interface";
+import { IApiKeyToken, ILicense } from "../../../interfaces/license.interface";
 import { IMedia } from "../../../interfaces/media.interface";
 import { convertBytes } from "../../../utils/getFolderSize";
 import moment from "moment";
@@ -21,7 +21,7 @@ const t = i18next.t
 
 export async function postMedia(req: IRequestUser | any, response: Response) {
   const { folders } = req.params
-  jwt.verify(req.headers.authorization, config.app.SECRET_KEY as string, async function (err: any, decodedApiKeyToken: IApiKey | any) {
+  jwt.verify(req.headers.authorization, config.app.SECRET_KEY as string, async function (err: any, decodedApiKeyToken: IApiKeyToken | any) {
     // Verify authorization token
     if (err) {
       if (err.message === 'jwt expired') {
@@ -32,7 +32,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     if (!decodedApiKeyToken) {
       return response.status(404).send({ status: mediaKey.apiKeyNotFound, message: t('api-key-not-found') })
     }
-    const { id, project } = decodedApiKeyToken as IApiKey
+    const { id, project } = decodedApiKeyToken as IApiKeyToken
     // Find license
     const findLicense: ILicense = await LicenseModel.findOne({ project: project }).populate(SUBSCRIPTION_POPULATE).lean().exec()
     if (!findLicense || !decodedApiKeyToken.apiKey) {
@@ -62,15 +62,17 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     if (findLicense.apiKey?.toString() !== req.headers.authorization.toString()) {
       return response.status(403).send({ status: responseKey.tokenInvalid, message: t('token-not-valid') })
     }
-    const foldersArray = folders?.split('-')
-    const foldersPath = !foldersArray ? '' : `${foldersArray?.join('/')}/`
-    const absolutePath = `${mediaFolderPath}/${id}/${project}/${foldersPath}`
+    const foldersToArray = folders?.split('-')
+    // Change - to / in folders
+    const foldersPath = !foldersToArray ? '' : `${foldersToArray?.join('/')}/`
+    // Server absolute path
+    const serverAbsolutePath = `./${mediaFolderPath}/${id}/${project}/${foldersPath}`
     // Create directory if not exists
-    if (!fs.existsSync(absolutePath)) {
-      fs.mkdirSync(absolutePath, { recursive: true })
+    if (!fs.existsSync(serverAbsolutePath)) {
+      fs.mkdirSync(serverAbsolutePath, { recursive: true })
     }
     // Upload Media
-    multipart({ uploadDir: absolutePath })(req, response, async (err: any, res: Response) => {
+    multipart({ uploadDir: serverAbsolutePath })(req, response, async (err: any, res: Response) => {
       if (err) {
         return response.status(500).send({ status: mediaKey.createMediaError, message: t('create-media-error'), err: err })
       }
@@ -86,13 +88,16 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
           fs.unlinkSync(mediaPath)
           return response.status(500).send({ status: mediaKey.createMediaError, message: t('create-media-error'), err: err })
         }
+        // Get filename
         const fileName = mediaPath.split('/')[mediaPath.split('/').length - 1]
-        const url = `${config.app.URL}/${mediaPath}`
+        const mediaAbsolutePath = `${mediaFolderPath}/${id}/${project}${folders ? `/${folders}` : ''}`
+        // Media Absolute Path
+        const mediaAbsolutePathToSave = `${config.app.URL}/${mediaAbsolutePath}/${fileName}`
         // Create Media
         const newMedia = new MediaModel({
           license: findLicense._id,
           directory: folders?.split('-').join('/'),
-          url: url,
+          url: mediaAbsolutePathToSave,
           fileName: fileName,
           size: mediaSize,
           sizeT: convertBytes(mediaSize),
@@ -101,6 +106,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
         try {
           const mediaSaved: IMedia = await newMedia.save()
           const mediaObject = {
+            id: mediaSaved._id,
             url: mediaSaved.url,
             size: mediaSaved.sizeT,
             createdAt: mediaSaved.createdAt,
@@ -132,11 +138,16 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
           }
           const fileName = mediaPath.split('/')[mediaPath.split('/').length - 1]
           const url = `${config.app.URL}/${mediaPath}`
+
+          const mediaAbsolutePath = `${mediaFolderPath}/${id}/${project}${folders ? `/${folders}` : ''}`
+          // Media Absolute Path
+          const mediaAbsolutePathToSave = `${config.app.URL}/${mediaAbsolutePath}/${fileName}`
+
           // Create media
           const newMedia = new MediaModel({
             license: findLicense._id,
             directory: folders?.split('-').join('/'),
-            url: url,
+            url: mediaAbsolutePathToSave,
             fileName: fileName,
             size: mediaSize,
             sizeT: convertBytes(mediaSize),
@@ -147,6 +158,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
             totalSize = totalSize + mediaSize
             totalFiles = totalFiles + 1
             const mediaObject = {
+              id: mediaSaved._id,
               url: mediaSaved.url,
               size: mediaSaved.sizeT,
               createdAt: mediaSaved.createdAt,
@@ -183,7 +195,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
 }
 
 export async function getMedia(req: Request, res: Response) {
-  const { project, folders, media } = req.params
+  const { mainFolder, project, folders, media } = req.params
   // Find media
   const findMedia: IMedia = await MediaModel.findOne({ fileName: media }).populate(LICENSE_POPULATE).lean().exec()
   if (!findMedia) {
@@ -212,7 +224,7 @@ export async function getMedia(req: Request, res: Response) {
   }
   const foldersArray = folders?.split('-')
   const foldersPath = !foldersArray ? '' : `${foldersArray?.join('/')}/`
-  const filePath = `${mediaFolderPath}/${project}/${foldersPath}${media}`
+  const filePath = `./${mediaFolderPath}/${mainFolder}/${project}/${foldersPath}${media}`
   // Chek if exists and return media
   try {
     await fs.exists(filePath, (exists: boolean) => {

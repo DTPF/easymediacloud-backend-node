@@ -11,7 +11,13 @@ const LicenseSchema = new Schema({
   size: { type: Number, default: 0 },
   sizeT: { type: String, default: '0 B' },
   totalFiles: { type: Number, default: 0 },
-  requests: { type: Number, default: 0 },
+  requests: [{
+    media: { type: Schema.Types.ObjectId },
+    reqIp: { type: String, default: 'no-ip' },
+    createdAt: { type: Date, default: Date.now }
+  }],
+  totalRequests: { type: Number, default: 0 },
+  requestsInDataRange: { type: Number, default: 0 },
 }, {
   timestamps: true
 })

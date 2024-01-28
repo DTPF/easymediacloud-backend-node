@@ -334,6 +334,7 @@ export async function deleteLicense(req: IRequestUser, res: Response) {
 async function cleanLicenseResponse(license: ILicenseResponse) {
 	delete license.user
 	delete license.apiKey
+	delete license.requests
 	delete license.subscription._id
 	delete license.subscription.user
 	delete license.subscription.license

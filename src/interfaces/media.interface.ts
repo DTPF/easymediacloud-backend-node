@@ -11,5 +11,6 @@ export interface IMedia {
   enabled: boolean
   createdAt: Date
   updatedAt: Date
+  totalRequests: number
   __v: any
 }

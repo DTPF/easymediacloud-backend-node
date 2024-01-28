@@ -9,6 +9,7 @@ const MediaSchema = new Schema({
   size: { type: Number, default: 0 },
   sizeT: { type: String, default: '0 B' },
   enabled: { type: Boolean, default: true },
+  totalRequests: { type: Number, default: 0 },
 }, {
   timestamps: true
 })

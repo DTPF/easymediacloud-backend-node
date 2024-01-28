@@ -8,16 +8,18 @@ import LicenseModel from "../../licenses/models/license.model";
 import MediaModel from "../models/media.model";
 import { ServerConfig } from "../../../config/config";
 import { licenseKey, mediaKey, responseKey } from "../../responseKey";
-import { IApiKeyToken, ILicense } from "../../../interfaces/license.interface";
+import { IApiKeyToken, ILicense, iLicenseKey } from "../../../interfaces/license.interface";
 import { IMedia } from "../../../interfaces/media.interface";
 import { convertBytes } from "../../../utils/getFolderSize";
 import moment from "moment";
 import SubscriptionModel from "../../subscriptions/models/subscription.model";
 import { LICENSE_POPULATE, SUBSCRIPTION_POPULATE } from "../../modelsConstants";
+import { REQUESTS_DATA_RANGE } from "../../subscriptions/subscriptionsConstants";
 const config: ServerConfig = require('../../../config/config')
 const fs = require("fs-extra")
 const path = require("path")
 const t = i18next.t
+const getIP = require('ipware')().get_ip;
 
 export async function postMedia(req: IRequestUser | any, response: Response) {
   const { folders } = req.params
@@ -55,7 +57,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
       return response.status(403).send({ status: licenseKey.licenseOverMaxSize, message: t('license-over-max-size') })
     }
     // Break if license is over max requests
-    if (findLicense.requests >= findLicense.subscription.requestsPerMonth) {
+    if (findLicense.requestsInDataRange >= findLicense.subscription.requestsPerMonth) {
       return response.status(403).send({ status: licenseKey.licenseOverMaxRequests, message: t('license-over-max-requests') })
     }
     // Break if license token is not valid
@@ -237,7 +239,27 @@ export async function getMedia(req: Request, res: Response) {
   } catch (err) {
     return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
   } finally {
-    await LicenseModel.findOneAndUpdate({ _id: findMedia.license._id }, { $inc: { requests: 1 } }).lean().exec()
+    const ipInfo = getIP(req);
+    // Get requests from last month
+    const filterByLastMonthLicenses =
+      findMedia.license.requests?.filter((request: any) => request.createdAt > REQUESTS_DATA_RANGE)
+    await LicenseModel.findOneAndUpdate({ _id: findMedia.license._id },
+      {
+        $inc: { totalRequests: 1 },
+        $push: {
+          requests: {
+            media: findMedia._id,
+            reqIp: ipInfo.clientIp,
+            createdAt: new Date()
+          }
+        },
+        [iLicenseKey.requestsInDataRange]: filterByLastMonthLicenses.length + 1
+      }
+    ).lean().exec()
+    await MediaModel.findOneAndUpdate(
+      { _id: findMedia._id },
+      { $inc: { totalRequests: 1 } }
+    ).lean().exec()
   }
 }
 

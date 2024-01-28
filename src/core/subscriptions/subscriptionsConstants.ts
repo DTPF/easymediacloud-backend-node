@@ -1,5 +1,6 @@
 import { convertBytes } from "../../utils/getFolderSize"
 export const REQUESTS_PER_MONTH = 20000
+export const FREE_LICENSES_LIMIT = 5
 // Bytes
 export const B10MB = 10485760
 export const B500MB = 524288000

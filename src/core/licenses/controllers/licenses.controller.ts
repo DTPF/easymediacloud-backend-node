@@ -10,7 +10,7 @@ import i18next from "i18next";
 import { ServerConfig } from "../../../config/config";
 import { IApiKeyToken, ILicense, ILicenseResponse } from "../../../interfaces/license.interface";
 import SubscriptionModel from "../../subscriptions/models/subscription.model";
-import { FREE } from "../../subscriptions/subscriptionsConstants";
+import { FREE, FREE_LICENSES_LIMIT } from "../../subscriptions/subscriptionsConstants";
 import { ISubscription } from "../../../interfaces/subscription.interface";
 import { SUBSCRIPTION_POPULATE } from "../../modelsConstants";
 import MediaModel from "../../media/models/media.model";
@@ -24,8 +24,12 @@ export async function createLicense(req: IRequestUser, res: Response) {
 	if (!project) {
 		return res.status(404).send({ status: licenseKey.projectRequired, message: t('data-required') })
 	}
-	// Find user licenses
-	const findUserLicenses: ILicense[] = await LicenseModel.find({ user: req.user._id }).lean().exec()
+	const findUserLicenses: ILicense[] = await LicenseModel.find({ user: req.user._id }).populate(SUBSCRIPTION_POPULATE).lean().exec()
+	//Break if user has more than 5 free licenses
+	const userFreeLicenses = findUserLicenses.filter((license: ILicense) => license.subscription?.type === FREE).length
+	if (userFreeLicenses >= FREE_LICENSES_LIMIT) {
+		return res.status(404).send({ status: licenseKey.freeLicensesLimit, message: t('licenses_free-licenses-limit') })
+	}
 	// Check if exists a license with the same project name
 	const licenseProjectExists = await findUserLicenses.find((license: ILicense) => license.project === project)
 	if (licenseProjectExists) {

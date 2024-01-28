@@ -10,7 +10,7 @@ export const spanishLang = {
   'update_user_success': 'Usuario actualizado correctamente',
   'avatar-extension-not-allowed': 'La extensión de la imagen no es válida. (Extensiones permitidas: .png y .jpg)',
   'update_user-nickname-exists': 'El nickname ya existe, prueba con otro',
-  
+
   // Licenses
   'licenses_created-success': 'La licencia se ha creado correctamente',
   'licenses_create-directory-error': 'El directorio ya existe',
@@ -38,6 +38,7 @@ export const spanishLang = {
   'nickname-required': 'Falta el nickname del usuario',
   'licenses_delete-license_success': 'Licencia y archivos borrados correctamente',
   'license-over-max-requests': 'La licencia ha superado el límite de peticiones',
+  'licenses_free-licenses-limit': 'Has superado el límite de licencias gratuitas',
 
   // Subscription
   'subscription-not-found': 'La suscripción no existe en la base de datos',
@@ -58,7 +59,7 @@ export const spanishLang = {
   'create-media-error': 'Error al crear la imágen',
   'media-protected': 'El archivo está protegido',
   'media-required': 'Falta el archivo en la petición',
-  
+
   // Shared
   'server-error': 'Error del servidor',
   'data-required': 'Falta información en la petición',

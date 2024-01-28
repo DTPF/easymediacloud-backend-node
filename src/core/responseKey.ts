@@ -49,6 +49,7 @@ export const licenseKey = {
   updateLicenseSuccess: 'update-license-success',
   deleteLicenseSuccess: 'delete-license-success',
   licenseOverMaxRequests: 'license-over-max-requests',
+  freeLicensesLimit: 'free-licenses-limit',
 }
 
 export const subscriptionKey = {

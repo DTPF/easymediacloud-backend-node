@@ -6,7 +6,7 @@ export interface IMedia {
   directory: string
   url: string
   fileName: string
-  size?: number
+  size: number
   sizeT?: string
   enabled: boolean
   createdAt: Date

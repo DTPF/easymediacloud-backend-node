@@ -34,7 +34,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     }
     const { id, project } = decodedApiKeyToken as IApiKeyToken
     // Find license
-    const findLicense: ILicense = await LicenseModel.findOne({ project: project }).populate(SUBSCRIPTION_POPULATE).lean().exec()
+    const findLicense: ILicense = await LicenseModel.findOne({ apiKey: req.headers.authorization }).populate(SUBSCRIPTION_POPULATE).lean().exec()
     if (!findLicense || !decodedApiKeyToken.apiKey) {
       return response.status(404).send({ status: licenseKey.licenseNotFound, message: t('license-not-found') })
     }
@@ -239,4 +239,74 @@ export async function getMedia(req: Request, res: Response) {
   } finally {
     await LicenseModel.findOneAndUpdate({ _id: findMedia.license._id }, { $inc: { requests: 1 } }).lean().exec()
   }
+}
+
+export async function deleteMedia(req: IRequestUser | any, response: Response) {
+  const { mediaId } = req.params
+  jwt.verify(req.headers.authorization, config.app.SECRET_KEY as string, async function (err: any, decodedApiKeyToken: IApiKeyToken | any) {
+    // Verify authorization token
+    if (err) {
+      if (err.message === 'jwt expired') {
+        return response.status(403).send({ status: responseKey.tokenExpired, message: t('token-expired') })
+      }
+      return response.status(403).send({ status: responseKey.tokenInvalid, message: t('token-not-valid') })
+    }
+    if (!decodedApiKeyToken) {
+      return response.status(404).send({ status: mediaKey.apiKeyNotFound, message: t('api-key-not-found') })
+    }
+    const { id, project, apiKey } = decodedApiKeyToken as IApiKeyToken
+    // Find Media
+    const findMedia: IMedia = await MediaModel.findOne({ _id: mediaId }).populate(LICENSE_POPULATE).lean().exec()
+    if (!findMedia) {
+      return response.status(404).send({ status: mediaKey.mediaNotExists, message: t('media-not-exists') })
+    }
+    // Find license
+    const findLicense: ILicense = await LicenseModel.findOne({ apiKey: req.headers.authorization }).populate(SUBSCRIPTION_POPULATE).lean().exec()
+    if (!findLicense || !apiKey) {
+      return response.status(404).send({ status: licenseKey.licenseNotFound, message: t('license-not-found') })
+    }
+    // Check if media is from license
+    if (findMedia.license._id.toString() !== findLicense._id.toString()) {
+      return response.status(404).send({ status: mediaKey.mediaDontBelongToLicense, message: t('media-dont-belong-to-license') })
+    }
+    // Break if license is not enabled
+    if (findLicense.enabled === false) {
+      return response.status(404).send({ status: licenseKey.licenseNotEnabled, message: t('license-not-enabled') })
+    }
+    // Get absolute path
+    const folders = findMedia.url.split(`/${project}/`)[1].split('/')
+    let transFolders = undefined
+    if (folders.length > 1) {
+      const hyphenseSplit = folders[0].split('-')
+      if (hyphenseSplit.length > 1) {
+        transFolders = hyphenseSplit.join('/')
+      } else {
+        transFolders = folders[0]
+      }
+    }
+    const serverAbsolutePath = `./${mediaFolderPath}/${id}/${project}/${transFolders ? `${transFolders}/` : ''}${findMedia.fileName}`
+    // Check if exists and delete media
+    try {
+      await fs.exists(serverAbsolutePath, async (exists: boolean) => {
+        if (!exists) {
+          return response.status(404).send({ status: mediaKey.mediaNotExists, message: t('media-not-exists') })
+        } else {
+          await fs.unlink(serverAbsolutePath)
+          await MediaModel.findOneAndDelete({ _id: findMedia._id }).lean().exec()
+          await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, {
+            $inc: {
+              totalFiles: -1,
+              size: -findMedia.size
+            },
+            sizeT: convertBytes(findLicense.size - findMedia.size)
+          }, { new: true }).lean().exec()
+          return response.status(200).send({ status: mediaKey.deleteMediaSuccess, message: t('delete-media-success') })
+        }
+      })
+    } catch (err) {
+      return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
+    } finally {
+      await LicenseModel.findOneAndUpdate({ _id: findLicense._id }, { updatedAt: new Date() }).lean().exec()
+    }
+  })
 }

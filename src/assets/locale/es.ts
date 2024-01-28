@@ -59,6 +59,8 @@ export const spanishLang = {
   'create-media-error': 'Error al crear la imágen',
   'media-protected': 'El archivo está protegido',
   'media-required': 'Falta el archivo en la petición',
+  'media-dont-belong-to-license': 'El archivo no pertenece a la licencia',
+  'delete-media-success': 'Archivo borrado correctamente',
 
   // Shared
   'server-error': 'Error del servidor',

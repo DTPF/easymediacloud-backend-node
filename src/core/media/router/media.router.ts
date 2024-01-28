@@ -6,7 +6,6 @@ api
 	.post("/post-media/:folders?", MediaController.postMedia)
 	.get("/media/:mainFolder/:project/:media", MediaController.getMedia)
 	.get("/media/:mainFolder/:project/:folders/:media", MediaController.getMedia)
-	// Pending
-	// .delete("/delete-media/:mediaId", MediaController.deleteMedia)
+	.delete("/delete-media/:mediaId", MediaController.deleteMedia)
 
 module.exports = api

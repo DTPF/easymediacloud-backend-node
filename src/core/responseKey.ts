@@ -13,10 +13,12 @@ export const userKey = {
 export const mediaKey = {
   createMediaSuccess: 'media-created-success',
   createMediaError: 'media-created-error',
+  deleteMediaSuccess: 'media-deleted-success',
   apiKeyNotFound: 'api-key-not-found',
   mediaNotExists: 'media-not-exists',
   mediaProtected: 'media-protected',
   mediaRequired: 'media-required',
+  mediaDontBelongToLicense: 'media-dont-belong-to-license',
 }
 
 export const licenseKey = {

@@ -51,7 +51,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 		}
 		try {
 			// Create license api key
-			const apiKey = await createLicenseApiKeyJWT(project, mainFolderName)
+			const apiKey = await createLicenseApiKeyJWT(project, req.user[iUserKey._id], mainFolderName)
 			if (!apiKey) {
 				return res.status(404).send({ status: licenseKey.createApiKeyTokenError, message: t('create-api-key-token-error') })
 			}
@@ -206,7 +206,8 @@ export async function getMyLicenses(req: IRequestUser, res: Response) {
 }
 
 export async function enableLicense(req: IRequestUser, res: Response) {
-	const { licenseId, enabled }: { licenseId: string, enabled: ILicense['enabled']} = req.body
+	const { licenseId } = req.params
+	const { enabled }: { enabled: ILicense['enabled']} = req.body
 	if (!licenseId) {
 		return res.status(404).send({ status: licenseKey.licenseIdRequired, message: t('licenses_license-id-required') })
 	}
@@ -229,7 +230,8 @@ export async function enableLicense(req: IRequestUser, res: Response) {
 }
 
 export async function updateLicenseProject(req: IRequestUser, res: Response) {
-	const { licenseId, project }: { licenseId: string, project: ILicense['project']} = req.body
+	const { licenseId } = req.params
+	const { project }: { project: ILicense['project']} = req.body
 	if (!licenseId) {
 		return res.status(404).send({ status: licenseKey.licenseIdRequired, message: t('licenses_license-id-required') })
 	}
@@ -257,7 +259,8 @@ export async function updateLicenseProject(req: IRequestUser, res: Response) {
 }
 
 export async function setOnlineLicense(req: IRequestUser, res: Response) {
-	const { licenseId, online } = req.body
+	const { licenseId } = req.params
+	const { online }: { online: ILicense['online']} = req.body
 	if (!licenseId) {
 		return res.status(404).send({ status: licenseKey.licenseIdRequired, message: t('licenses_license-id-required') })
 	}
@@ -280,7 +283,7 @@ export async function setOnlineLicense(req: IRequestUser, res: Response) {
 }
 
 export async function deleteLicense(req: IRequestUser, res: Response) {
-	const { licenseId } = req.body
+	const { licenseId } = req.params
 	if (!licenseId) {
 		return res.status(404).send({ status: licenseKey.licenseIdRequired, message: t('licenses_license-id-required') })
 	}

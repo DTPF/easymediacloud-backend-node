@@ -4,6 +4,7 @@ import { ILicense } from "./license.interface"
 export interface IMedia {
   _id: string
   license: ILicense
+  user: string
   directory: string
   url: string
   fileName: string
@@ -18,6 +19,7 @@ export interface IMedia {
 export const iMediaKey = {
   _id: '_id' as keyof typeof Object.keys,
   license: 'license' as keyof typeof Object.keys,
+  user: 'user' as keyof typeof Object.keys,
   directory: 'directory' as keyof typeof Object.keys,
   url: 'url' as keyof typeof Object.keys,
   fileName: 'fileName' as keyof typeof Object.keys,

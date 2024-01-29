@@ -1,11 +1,11 @@
 export const spanishLang = {
   // User
   'login_user-not-found': 'Falta el usuario en la petición de login',
-  'login_user-exists': 'El usuario ya existe en la base de datos',
+  'login_user-exists': 'El usuario ya existe',
   'update_user-data-required': 'Falta información para actualizar el usuario',
   'delete-user_success': 'Usuario borrado correctamente',
   'delete-user-admin_unauthorized': 'No tienes permisos para borrar usuarios',
-  'user-not-found': 'El usuario no existe en la base de datos',
+  'user-not-found': 'El usuario no existe',
   'update-user-role_unauthorized': 'No tienes permisos para actualizar el rol del usuario',
   'update_user_success': 'Usuario actualizado correctamente',
   'avatar-extension-not-allowed': 'La extensión de la imagen no es válida. (Extensiones permitidas: .png y .jpg)',
@@ -27,7 +27,7 @@ export const spanishLang = {
   'licenses_update-license_success': 'Licencia actualizada correctamente',
   'license_not-enabled': 'La licencia no está activada',
   'license-not-enabled': 'La licencia no está activada',
-  'license-not-found': 'La licencia no existe en la base de datos',
+  'license-not-found': 'La licencia no existe',
   'license-offline': 'La licencia está offline',
   'license-over-max-size': 'La licencia ha superado el límite de tamaño',
   'license-expired': 'La licencia ha caducado',
@@ -41,7 +41,7 @@ export const spanishLang = {
   'licenses_free-licenses-limit': 'Has superado el límite de licencias gratuitas',
 
   // Subscription
-  'subscription-not-found': 'La suscripción no existe en la base de datos',
+  'subscription-not-found': 'La suscripción no existe',
   'subscription-id_required': 'Falta el id de la suscripción',
   'subscription_data_required': 'Falta información para actualizar la suscripción',
   'subscription_type_invalid': 'El tipo de suscripción no es válido',
@@ -61,6 +61,8 @@ export const spanishLang = {
   'media-required': 'Falta el archivo en la petición',
   'media-dont-belong-to-license': 'El archivo no pertenece a la licencia',
   'delete-media-success': 'Archivo borrado correctamente',
+  'media-not-found': 'No hay archivos',
+  'get-media-success': 'Archivo/s obtenido correctamente',
 
   // Shared
   'server-error': 'Error del servidor',

@@ -19,6 +19,8 @@ export const mediaKey = {
   mediaProtected: 'media-protected',
   mediaRequired: 'media-required',
   mediaDontBelongToLicense: 'media-dont-belong-to-license',
+  getMediaSuccess: 'media-get-success',
+  mediaNotFound: 'media-not-found',
 }
 
 export const licenseKey = {

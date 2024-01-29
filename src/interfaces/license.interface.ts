@@ -56,6 +56,7 @@ export const iRequestsKey = {
 //////////////////////////////////////
 export interface IApiKeyToken {
   id: string
+  user: string
   project: string
   apiKey: string | ObjectId
   createdAt: Date
@@ -63,6 +64,7 @@ export interface IApiKeyToken {
 }
 export const iApiKeyTokenKey = {
   id: 'id' as keyof typeof Object.keys,
+  user: 'user' as keyof typeof Object.keys,
   project: 'project' as keyof typeof Object.keys,
   apiKey: 'apiKey' as keyof typeof Object.keys,
   createdAt: 'createdAt' as keyof typeof Object.keys,

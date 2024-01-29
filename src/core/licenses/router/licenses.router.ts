@@ -10,9 +10,9 @@ api.
   get("/get-license-token-decrypted/:licenseId", [auth_0, ensure_admin], controller.getLicenseTokenDecrypted).
   get("/refresh-license-token/:licenseId", [auth_0, is_verified], controller.refreshLicenseToken).
   get("/get-my-licenses", [auth_0, is_verified], controller.getMyLicenses).
-  patch("/enable-license", [auth_0, ensure_admin], controller.enableLicense).
-  patch("/set-online-license", [auth_0, is_verified], controller.setOnlineLicense).
-  patch("/update-license-project", [auth_0, is_verified], controller.updateLicenseProject).
-  delete("/delete-license", [auth_0, is_verified], controller.deleteLicense)
+  patch("/enable-license/:licenseId", [auth_0, ensure_admin], controller.enableLicense).
+  patch("/set-online-license/:licenseId", [auth_0, is_verified], controller.setOnlineLicense).
+  patch("/update-license-project/:licenseId", [auth_0, is_verified], controller.updateLicenseProject).
+  delete("/delete-license/:licenseId", [auth_0, is_verified], controller.deleteLicense)
 
 module.exports = api

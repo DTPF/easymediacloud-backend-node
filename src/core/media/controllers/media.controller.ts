@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import multipart from "connect-multiparty"
 import i18next from "i18next";
 import { mediaFolderPath } from "../../../utils/constants";
-import { IRequestUser } from "../../../interfaces/user.interface";
+import { IRequestUser, iUserKey } from "../../../interfaces/user.interface";
 import jwt from "jsonwebtoken";
 import LicenseModel from "../../licenses/models/license.model";
 import MediaModel from "../models/media.model";
@@ -72,6 +72,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     // Server absolute path
     const mainFolder = decodedApiKeyToken[iApiKeyTokenKey.id] as IApiKeyToken['id']
     const projectName = decodedApiKeyToken[iApiKeyTokenKey.project] as IApiKeyToken['project']
+    const userId = decodedApiKeyToken[iApiKeyTokenKey.user] as IApiKeyToken['user']
     const serverAbsolutePath = `./${mediaFolderPath}/${mainFolder}/${projectName}/${foldersPath}`
     // Create directory if not exists
     if (!fs.existsSync(serverAbsolutePath)) {
@@ -100,7 +101,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
         // Media Absolute Path
         const mediaAbsolutePathToSave = `${config.app.URL}/${mediaAbsolutePath}/${fileName}`
         // Create Media
-        const newMedia = newMediaModel({ license: findLicense, folders, mediaAbsolutePathToSave, fileName, mediaSize })
+        const newMedia = newMediaModel({ license: findLicense, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize })
         try {
           const mediaSaved: IMedia = await newMedia.save()
           const requestMediaObject = {
@@ -139,7 +140,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
           // Media Absolute Path
           const mediaAbsolutePathToSave = `${config.app.URL}/${mediaAbsolutePath}/${fileName}`
           // Create media
-          const newMedia = newMediaModel({ license: findLicense, folders, mediaAbsolutePathToSave, fileName, mediaSize })
+          const newMedia = newMediaModel({ license: findLicense, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize })
           try {
             const mediaSaved: IMedia = await newMedia.save()
             totalSize = totalSize + mediaSize
@@ -321,18 +322,50 @@ export async function deleteMedia(req: IRequestUser | any, response: Response) {
   })
 }
 
+export async function getMyMedia(req: IRequestUser | any, response: Response) {
+  try {
+    const findMedia: IMedia[] = await MediaModel.find({ [iMediaKey.user]: req.user[iUserKey._id] }).lean().exec()
+    if (!findMedia) {
+      return response.status(404).send({ status: mediaKey.mediaNotFound, message: t('media-not-found') })
+    }
+    return response.status(200).send({ status: mediaKey.getMediaSuccess, message: t('get-media-success'), media: findMedia })
+  } catch (err) {
+    return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
+  }
+}
+
+export async function getMediaByLicense(req: IRequestUser | any, response: Response) {
+  const { licenseId } = req.params
+  try {
+    const findLicense: ILicense = await LicenseModel.findOne({ [iLicenseKey._id]: licenseId }).lean().exec()
+    if (!findLicense) {
+      return response.status(404).send({ status: licenseKey.licenseNotFound, message: t('license-not-found') })
+    }
+    const findMedia: IMedia[] = await MediaModel.find({ [iMediaKey.license]: licenseId }).lean().exec()
+    if (!findMedia) {
+      return response.status(404).send({ status: mediaKey.mediaNotFound, message: t('media-not-found') })
+    }
+    return response.status(200).send({ status: mediaKey.getMediaSuccess, message: t('get-media-success'), media: findMedia })
+
+  } catch (err) {
+    return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
+  }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////7
 ///////////////////////////////////////////////////////////////////////////////////////7
 
 type TNewMediaModel = {
   license: ILicense
+  userId: string
   folders: string
   mediaAbsolutePathToSave: string
   fileName: string
   mediaSize: number
 }
-const newMediaModel = ({ license, folders, mediaAbsolutePathToSave, fileName, mediaSize }: TNewMediaModel) => {
+const newMediaModel = ({ license, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize }: TNewMediaModel) => {
   return new MediaModel({
+    [iMediaKey.user]: userId,
     [iMediaKey.license]: license[iLicenseKey._id],
     [iMediaKey.directory]: folders?.split('-').join('/'),
     [iMediaKey.url]: mediaAbsolutePathToSave,

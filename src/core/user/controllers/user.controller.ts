@@ -5,7 +5,6 @@ import { responseKey, userKey } from "../../responseKey";
 import { IAuth0User, IUser, IRequestUser, iUserKey } from "../../../interfaces/user.interface";
 import i18next from "i18next";
 import { LICENSES_POPULATE } from "../../modelsConstants";
-import mongoose from "mongoose";
 const fs = require("fs-extra")
 const path = require("path")
 const t = i18next.t

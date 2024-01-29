@@ -18,6 +18,21 @@ export interface IUser {
   lastLogin: Date
   __v: string | any
 }
+export const iUserKey = {
+  _id: '_id' as keyof typeof Object.keys,
+  auth0Id: 'auth0Id' as keyof typeof Object.keys,
+  name: 'name' as keyof typeof Object.keys,
+  lastname: 'lastname' as keyof typeof Object.keys,
+  email: 'email' as keyof typeof Object.keys,
+  role: 'role' as keyof typeof Object.keys,
+  isVerified: 'isVerified' as keyof typeof Object.keys,
+  language: 'language' as keyof typeof Object.keys,
+  avatar: 'avatar' as keyof typeof Object.keys,
+  licenses: 'licenses' as keyof typeof Object.keys,
+  createdAt: 'createdAt' as keyof typeof Object.keys,
+  updatedAt: 'updatedAt' as keyof typeof Object.keys,
+  lastLogin: 'lastLogin' as keyof typeof Object.keys,
+}
 
 export interface IAuth0User {
   nickname: string

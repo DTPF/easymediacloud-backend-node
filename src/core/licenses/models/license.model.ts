@@ -1,23 +1,24 @@
+import { iLicenseKey, iRequestsKey } from "../../../interfaces/license.interface";
 import { LICENSE_MODEL, SUBSCRIPTION_MODEL, USER_MODEL } from "../../modelsConstants";
 const { Schema, model } = require('mongoose');
 
 const LicenseSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: USER_MODEL },
-  subscription: { type: Schema.Types.ObjectId, ref: SUBSCRIPTION_MODEL },
-  project: { type: String, required: true },
-  apiKey: { type: String, required: true, unique: true },
-  enabled: { type: Boolean, required: true, default: true },
-  online: { type: Boolean, required: true, default: true },
-  size: { type: Number, default: 0 },
-  sizeT: { type: String, default: '0 B' },
-  totalFiles: { type: Number, default: 0 },
-  requests: [{
-    media: { type: Schema.Types.ObjectId },
-    reqIp: { type: String, default: 'no-ip' },
-    createdAt: { type: Date, default: Date.now }
+  [iLicenseKey.user]: { type: Schema.Types.ObjectId, ref: USER_MODEL },
+  [iLicenseKey.subscription]: { type: Schema.Types.ObjectId, ref: SUBSCRIPTION_MODEL },
+  [iLicenseKey.project]: { type: String, required: true },
+  [iLicenseKey.apiKey]: { type: String, required: true, unique: true },
+  [iLicenseKey.enabled]: { type: Boolean, required: true, default: true },
+  [iLicenseKey.online]: { type: Boolean, required: true, default: true },
+  [iLicenseKey.size]: { type: Number, default: 0 },
+  [iLicenseKey.sizeT]: { type: String, default: '0 B' },
+  [iLicenseKey.totalFiles]: { type: Number, default: 0 },
+  [iLicenseKey.requests]: [{
+    [iRequestsKey.media]: { type: Schema.Types.ObjectId },
+    [iRequestsKey.reqIp]: { type: String, default: 'no-ip' },
+    [iRequestsKey.createdAt]: { type: Date, default: Date.now }
   }],
-  totalRequests: { type: Number, default: 0 },
-  requestsInDataRange: { type: Number, default: 0 },
+  [iLicenseKey.totalRequests]: { type: Number, default: 0 },
+  [iLicenseKey.requestsInDataRange]: { type: Number, default: 0 },
 }, {
   timestamps: true
 })

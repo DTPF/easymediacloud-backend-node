@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { IRequestUser, IUser, iUserKey } from "../../../interfaces/user.interface";
 import i18next from "i18next";
-import { BASIC, CUSTOM, FREE, PREMIUM, SUBSCRIPTION_EXPIRE_DATE, SUBSCRIPTION_EXPIRE_DATE_CICLE } from "../subscriptionsConstants";
+import { BASIC, CUSTOM, FREE, PREMIUM, SUBSCRIPTION_EXPIRE_DATE } from "../subscriptionsConstants";
 import SubscriptionModel from "../models/subscription.model";
 import { convertBytes } from "../../../utils/getFolderSize";
 import moment from "moment";
@@ -15,9 +15,9 @@ export async function customSubscription(req: IRequestUser, res: Response) {
   if (!subscriptionId) {
     return res.status(400).send({ status: subscriptionKey.subscriptionIdRequired, message: t('subscription-id_required') })
   }
-  const { type, price, currency, maxSize, expire, enabled, requestsPerMonth }: ISubscription = req.body
+  const { type, price, currency, maxSize, expire, enabled, requestsDataRange, maxRequests }: ISubscription = req.body
   // Return error if no data is provided
-  if (!type && !price && !currency && !maxSize && !expire && !enabled && !requestsPerMonth) {
+  if (!type && !price && !currency && !maxSize && !expire && !enabled && !requestsDataRange.quantity && !requestsDataRange.cicle && !maxRequests) {
     return res.status(400).send({ status: subscriptionKey.subscriptionDataRequired, message: t('subscription_data_required') })
   }
   // Return error if type is not valid
@@ -80,7 +80,7 @@ export async function renewFreeSubscription(req: IRequestUser, res: Response) {
   try {
     const updateSubscription: ISubscription = await SubscriptionModel.findOneAndUpdate(
       { [iSubscriptionKey._id]: subscriptionId },
-      { [iSubscriptionKey.expire]: moment(findSubscription.expire).add(SUBSCRIPTION_EXPIRE_DATE, SUBSCRIPTION_EXPIRE_DATE_CICLE) },
+      { [iSubscriptionKey.expire]: moment(findSubscription.expire).add(SUBSCRIPTION_EXPIRE_DATE.quantity, SUBSCRIPTION_EXPIRE_DATE.cicle as moment.DurationInputArg2) },
       { new: true }).lean().exec()
     if (!updateSubscription) {
       return res.status(404).send({ status: subscriptionKey.subscriptionNotFound, message: t('subscription-not-found') })

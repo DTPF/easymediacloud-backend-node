@@ -14,8 +14,7 @@ import { convertBytes } from "../../../utils/getFolderSize";
 import moment from "moment";
 import SubscriptionModel from "../../subscriptions/models/subscription.model";
 import { LICENSE_POPULATE, SUBSCRIPTION_POPULATE } from "../../modelsConstants";
-import { REQUESTS_DATA_RANGE } from "../../subscriptions/subscriptionsConstants";
-import { ISubscription, iSubscriptionKey } from "../../../interfaces/subscription.interface";
+import { ISubscription, iRequestsDataRangeKey, iSubscriptionKey } from "../../../interfaces/subscription.interface";
 const config: ServerConfig = require('../../../config/config')
 const fs = require("fs-extra")
 const path = require("path")
@@ -56,10 +55,6 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     // Break if license is over max size
     if (licenseSubscription.maxSize && findLicense.size >= licenseSubscription.maxSize) {
       return response.status(403).send({ status: licenseKey.licenseOverMaxSize, message: t('license-over-max-size') })
-    }
-    // Break if license is over max requests
-    if (findLicense[iLicenseKey.requestsInDataRange] >= licenseSubscription.requestsPerMonth) {
-      return response.status(403).send({ status: licenseKey.licenseOverMaxRequests, message: t('license-over-max-requests') })
     }
     // Break if license token is not valid
     const apiKeyUser = findLicense[iLicenseKey.apiKey] as ILicense | undefined
@@ -206,8 +201,16 @@ export async function getMedia(req: Request, res: Response) {
   if (moment().isBefore(moment(findSubscription[iSubscriptionKey.expire])) === false) {
     return res.status(403).send({ status: licenseKey.licenseExpired, message: t('license-expired') })
   }
+  // UPDATE REQUESTS
+  const dataRange = moment().subtract(findSubscription[iSubscriptionKey.requestsDataRange][iRequestsDataRangeKey.quantity], findSubscription[iSubscriptionKey.requestsDataRange][iRequestsDataRangeKey.cicle] as moment.DurationInputArg2).toDate()
+  const filterLicenseRequestsByDataRange = (findMedia[iMediaKey.license][iLicenseKey.requests] as ILicense['requests'])?.filter(
+    (request: TRequests) => (request[iLicenseKey.createdAt] as TRequests['createdAt']) > dataRange
+  )
+  await LicenseModel.findOneAndUpdate({ [iLicenseKey._id]: findMedia[iMediaKey.license][iLicenseKey._id] },
+    { [iLicenseKey.requestsInDataRange]: filterLicenseRequestsByDataRange.length + 1 }
+  ).lean().exec()
   // Break if license is over max requests
-  if ((findMedia.license[iMediaKey.license] as IMedia['license'])?.[iLicenseKey.requestsInDataRange] >= findSubscription[iSubscriptionKey.requestsPerMonth]) {
+  if ((filterLicenseRequestsByDataRange.length + 1) >= findSubscription[iSubscriptionKey.maxRequests]) {
     return res.status(403).send({ status: licenseKey.licenseOverMaxRequests, message: t('license-over-max-requests') })
   }
   const foldersArray = folders?.split('-')
@@ -226,10 +229,6 @@ export async function getMedia(req: Request, res: Response) {
     return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
   } finally {
     const ipInfo = getIP(req);
-    // Get requests from last month
-    const filterByLastMonthLicenses = (findMedia[iMediaKey.license][iLicenseKey.requests] as ILicense['requests'])?.filter(
-      (request: TRequests) => (request[iLicenseKey.createdAt] as TRequests['createdAt']) > REQUESTS_DATA_RANGE
-    )
     await LicenseModel.findOneAndUpdate({ [iLicenseKey._id]: findMedia[iMediaKey.license][iLicenseKey._id] },
       {
         $inc: { [iLicenseKey.totalRequests]: 1 },
@@ -239,8 +238,7 @@ export async function getMedia(req: Request, res: Response) {
             [iRequestsKey.reqIp]: ipInfo.clientIp,
             [iRequestsKey.createdAt]: new Date()
           }
-        },
-        [iLicenseKey.requestsInDataRange]: filterByLastMonthLicenses.length + 1
+        }
       }
     ).lean().exec()
     await MediaModel.findOneAndUpdate(

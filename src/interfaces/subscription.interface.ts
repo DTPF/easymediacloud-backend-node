@@ -12,7 +12,8 @@ export interface ISubscription {
   maxSizeT: string
   expire: Date
   enabled: boolean
-  requestsPerMonth: number
+  requestsDataRange: TRequestsDataRange
+  maxRequests: number
   createdAt: Date
   updatedAt: Date
   __v?: number | string | undefined
@@ -28,9 +29,19 @@ export const iSubscriptionKey = {
   maxSizeT: 'maxSizeT' as keyof typeof Object.keys,
   expire: 'expire' as keyof typeof Object.keys,
   enabled: 'enabled' as keyof typeof Object.keys,
-  requestsPerMonth: 'requestsPerMonth' as keyof typeof Object.keys,
+  requestsDataRange: 'requestsDataRange' as keyof typeof Object.keys,
+  maxRequests: 'maxRequests' as keyof typeof Object.keys,
   createdAt: 'createdAt' as keyof typeof Object.keys,
   updatedAt: 'updatedAt' as keyof typeof Object.keys,
+}
+
+export type TRequestsDataRange = {
+  quantity: number
+  cicle: string
+}
+export const iRequestsDataRangeKey = {
+  quantity: 'quantity' as keyof typeof Object.keys,
+  cicle: 'cicle' as keyof typeof Object.keys,
 }
 //////////////////////////////////////
 

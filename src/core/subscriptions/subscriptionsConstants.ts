@@ -1,11 +1,14 @@
-import moment from "moment"
 import { convertBytes } from "../../utils/getFolderSize"
 
-export const REQUESTS_PER_MONTH = 20000
-export const REQUESTS_DATA_RANGE = moment().subtract(1, 'day').toDate()
-export const SUBSCRIPTION_EXPIRE_DATE = 1
-export const SUBSCRIPTION_EXPIRE_DATE_CICLE = 'year'
-// export const REQUESTS_DATA_RANGE = moment().subtract(1, 'months').toDate()
+export const REQUESTS_DATA_RANGE = {
+  quantity: 1,
+  cicle: "months",
+  maxRequests: 20000
+}
+export const SUBSCRIPTION_EXPIRE_DATE = {
+  quantity: 1,
+  cicle: "year"
+}
 export const FREE_LICENSES_LIMIT = 5
 // Bytes
 export const B10MB = 10485760

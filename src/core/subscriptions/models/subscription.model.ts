@@ -1,8 +1,8 @@
 import moment from "moment";
 import { convertBytes } from "../../../utils/getFolderSize";
 import { LICENSE_MODEL, SUBSCRIPTION_MODEL, USER_MODEL } from "../../modelsConstants";
-import { B500MB, FREE, REQUESTS_PER_MONTH, SUBSCRIPTION_EXPIRE_DATE, SUBSCRIPTION_EXPIRE_DATE_CICLE } from "../subscriptionsConstants";
-import { iSubscriptionKey } from "../../../interfaces/subscription.interface";
+import { B500MB, FREE, REQUESTS_DATA_RANGE, SUBSCRIPTION_EXPIRE_DATE } from "../subscriptionsConstants";
+import { iRequestsDataRangeKey, iSubscriptionKey } from "../../../interfaces/subscription.interface";
 const { Schema, model } = require('mongoose');
 
 const SubscriptionSchema = new Schema({
@@ -13,9 +13,13 @@ const SubscriptionSchema = new Schema({
   [iSubscriptionKey.currency]: { type: String, required: true },
   [iSubscriptionKey.maxSize]: { type: Number, default: B500MB },
   [iSubscriptionKey.maxSizeT]: { type: String, default: convertBytes(B500MB) },
-  [iSubscriptionKey.expire]: { type: Date, default: moment().add(SUBSCRIPTION_EXPIRE_DATE, SUBSCRIPTION_EXPIRE_DATE_CICLE) },
+  [iSubscriptionKey.expire]: { type: Date, default: moment().add(SUBSCRIPTION_EXPIRE_DATE.quantity, SUBSCRIPTION_EXPIRE_DATE.cicle as moment.DurationInputArg2) },
   [iSubscriptionKey.enabled]: { type: Boolean, default: true },
-  [iSubscriptionKey.requestsPerMonth]: { type: Number, default: REQUESTS_PER_MONTH }
+  [iSubscriptionKey.requestsDataRange]: {
+    [iRequestsDataRangeKey.quantity]: { type: Number, default: REQUESTS_DATA_RANGE.quantity },
+    [iRequestsDataRangeKey.cicle]: { type: String, default: REQUESTS_DATA_RANGE.cicle }
+  },
+  [iSubscriptionKey.maxRequests]: { type: Number, default: REQUESTS_DATA_RANGE.maxRequests }
 }, {
   timestamps: true
 })

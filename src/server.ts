@@ -1,6 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import errorMiddleware from "./middlewares/error.middleware";
-import { productionStage } from "./utils/constants";
+import { ES_lang, productionStage } from "./utils/constants";
 import i18next from 'i18next';
 import { englishLang } from "./assets/locale/en";
 import { spanishLang } from "./assets/locale/es";
@@ -17,7 +17,7 @@ const licensesRoutes = require("./core/licenses/router/licenses.router");
 const subscriptionRoutes = require("./core/subscriptions/router/subscriptions.router");
 
 i18next.init({
-  lng: 'es',
+  lng: ES_lang,
   // debug: true,
   resources: {
     es: { translation: spanishLang },

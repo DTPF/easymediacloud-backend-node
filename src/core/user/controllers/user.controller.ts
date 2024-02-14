@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import UserModel from "../models/user.model";
-import { userRole, adminRole, creatorRole, uploadsAvatarPath, ES_lang } from "../../../utils/constants";
+import { userRole, adminRole, creatorRole, uploadsAvatarPath } from "../../../utils/constants";
 import { responseKey, userKey } from "../../responseKey";
 import { IAuth0User, IUser, IRequestUser, iUserKey } from "../../../interfaces/user.interface";
 import i18next from "i18next";
@@ -42,7 +42,7 @@ export async function registerLoginUser(req: IRequestUser, res: Response) {
 				[iUserKey.lastname]: '',
 				[iUserKey.email]: user.email,
 				[iUserKey.avatar]: user.picture ?? '',
-				[iUserKey.language]: user.locale ?? ES_lang,
+				[iUserKey.language]: user.locale ?? '',
 				[iUserKey.role]: userRole,
 				[iUserKey.isVerified]: user.email_verified,
 			})

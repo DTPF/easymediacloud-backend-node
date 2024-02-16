@@ -1,53 +1,49 @@
 import { Request } from "express"
 import { ILicense } from "./license.interface"
-import mongoose from "mongoose"
+import { Types } from "mongoose"
 
 export interface IUser {
-  _id: mongoose.Types.ObjectId | string
-  auth0Id: string
+  _id: Types.ObjectId | string
+  dauthLicense?: ILicense
+  sid: string
   name: string
   lastname: string
+  nickname: string
   email: string
-  role: string
-  isVerified: boolean
+  password?: string
+  is_verified: boolean
   language: string
   avatar: string
-  licenses: ILicense[]
+  role: string
+  tel_prefix: string
+  tel_suffix: string
   createdAt: Date
   updatedAt: Date
-  lastLogin: Date
-  __v: string | any
+  last_login: Date
 }
 export const iUserKey = {
   _id: '_id' as keyof typeof Object.keys,
-  auth0Id: 'auth0Id' as keyof typeof Object.keys,
+  dauthLicense: 'dauthLicense' as keyof typeof Object.keys,
+  sid: 'sid' as keyof typeof Object.keys,
   name: 'name' as keyof typeof Object.keys,
   lastname: 'lastname' as keyof typeof Object.keys,
+  nickname: 'nickname' as keyof typeof Object.keys,
   email: 'email' as keyof typeof Object.keys,
-  role: 'role' as keyof typeof Object.keys,
-  isVerified: 'isVerified' as keyof typeof Object.keys,
+  password: 'password' as keyof typeof Object.keys,
+  is_verified: 'is_verified' as keyof typeof Object.keys,
   language: 'language' as keyof typeof Object.keys,
   avatar: 'avatar' as keyof typeof Object.keys,
-  licenses: 'licenses' as keyof typeof Object.keys,
+  role: 'role' as keyof typeof Object.keys,
+  tel_prefix: 'tel_prefix' as keyof typeof Object.keys,
+  tel_suffix: 'tel_suffix' as keyof typeof Object.keys,
   createdAt: 'createdAt' as keyof typeof Object.keys,
   updatedAt: 'updatedAt' as keyof typeof Object.keys,
-  lastLogin: 'lastLogin' as keyof typeof Object.keys,
-}
-
-export interface IAuth0User {
-  nickname: string
-  name: string
-  picture: string
-  updated_at: string
-  email: string
-  email_verified: boolean
-  sub: string
-  locale: string
+  last_login: 'last_login' as keyof typeof Object.keys,
 }
 
 export interface IRequestUser extends Request {
   user: IUser
-  auth: Auth0Request
+  auth: IAccessToken
   files: {
     image: { path: string },
     avatar: { path: string }
@@ -57,16 +53,11 @@ export interface IRequestUser extends Request {
   }
 }
 
-interface Auth0Request {
-  payload: {
-    iss: string,
-    sub: string,
-    aud: string[],
-    iat: number,
-    exp: number,
-    azp: string,
-    scope: string
-  },
-  header: { alg: string, typ: string, kid: string },
-  token: string
+export interface IAccessToken {
+  _id: string | Types.ObjectId
+  sid: string
+  email: string
+  createToken?: number
+  exp?: number
+  iat?: number
 }

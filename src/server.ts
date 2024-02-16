@@ -11,7 +11,6 @@ const cors = require('cors')
 const app: Express = express()
 const path = require("path")
 // Routes
-const userRoutes = require("./core/user/router/user.router");
 const mediaRoutes = require("./core/media/router/media.router");
 const licensesRoutes = require("./core/licenses/router/licenses.router");
 const subscriptionRoutes = require("./core/subscriptions/router/subscriptions.router");
@@ -24,33 +23,16 @@ i18next.init({
     en: { translation: englishLang }
   }
 });
+i18next.changeLanguage(ES_lang);
 app.use(express.json())
 app.use(cors({
   origin: [config.app.CLIENT_URL]
 }))
-app.use(helmet({
-  crossOriginResourcePolicy: false,
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: [
-        "'self'",
-        config.auth0.ISSUER,
-        "https://lh3.googleusercontent.com",
-      ],
-      objectSrc: ["'none'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "https: 'unsafe-inline'"],
-      connectSrc: ["'self'", config.auth0.ISSUER_TOKEN],
-      "img-src": ["'self'", "https: data:"],
-      upgradeInsecureRequests: [],
-    },
-  },
-}))
+app.use(helmet())
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.header("Cross-Origin-Embedder-Policy", "cross-origin")
   next()
 })
-app.use(`/api/${config.app.API_VERSION}`, userRoutes);
 app.use(`/api/${config.app.API_VERSION}`, mediaRoutes);
 app.use(`/api/${config.app.API_VERSION}`, licensesRoutes);
 app.use(`/api/${config.app.API_VERSION}`, subscriptionRoutes);

@@ -79,4 +79,5 @@ export const responseKey = {
   unauthorized: 'unauthorized',
   tokenExpired: 'token-expired',
   tokenInvalid: 'token-invalid',
+  tokenNotFound: 'token-not-found',
 }

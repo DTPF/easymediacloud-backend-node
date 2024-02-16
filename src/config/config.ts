@@ -15,10 +15,9 @@ export type ServerConfig = {
     MONGO_URL: string,
     PORT_MONGO_DB: string | number
   },
-  auth0: {
-    AUDIENCE: string | undefined,
-    ISSUER: string | undefined,
-    ISSUER_TOKEN: string | undefined
+  dauth: {
+    SSID: string | undefined
+    DOMAIN_NAME: string | undefined
   }
 }
 
@@ -39,10 +38,9 @@ const CONFIG: ConfigEnv = {
       MONGO_URL: `mongodb://${process.env.IP_SERVER}:${process.env.PORT_MONGO_DB}/${process.env.DB_NAME}`,
       PORT_MONGO_DB: process.env.PORT_MONGO_DB || 27017
     },
-    auth0: {
-      AUDIENCE: process.env.AUTH0_AUDIENCE,
-      ISSUER: process.env.AUTH0_ISSUER,
-      ISSUER_TOKEN: process.env.AUTH0_ISSUER_TOKEN
+    dauth: {
+      SSID: process.env.DAUTH_SSID,
+      DOMAIN_NAME: process.env.DAUTH_DOMAIN_NAME
     },
   },
   production: {
@@ -57,10 +55,9 @@ const CONFIG: ConfigEnv = {
       MONGO_URL: `mongodb://${process.env.DB_USER_PASSWORD}@${process.env.IP_SERVER}:${process.env.PORT_MONGO_DB}/${process.env.DB_NAME}?authSource=admin`,
       PORT_MONGO_DB: process.env.PORT_MONGO_DB || 27017
     },
-    auth0: {
-      AUDIENCE: process.env.AUTH0_AUDIENCE,
-      ISSUER: process.env.AUTH0_ISSUER,
-      ISSUER_TOKEN: process.env.AUTH0_ISSUER_TOKEN
+    dauth: {
+      SSID: process.env.DAUTH_SSID,
+      DOMAIN_NAME: process.env.DAUTH_DOMAIN_NAME
     },
   }
 }

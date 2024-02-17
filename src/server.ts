@@ -28,7 +28,9 @@ app.use(express.json())
 app.use(cors({
   origin: [config.app.CLIENT_URL]
 }))
-app.use(helmet())
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}))
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.header("Cross-Origin-Embedder-Policy", "cross-origin")
   next()

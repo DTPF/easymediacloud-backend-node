@@ -17,24 +17,29 @@ const subscriptionRoutes = require("./core/subscriptions/router/subscriptions.ro
 
 i18next.init({
   lng: ES_lang,
-  // debug: true,
   resources: {
     es: { translation: spanishLang },
     en: { translation: englishLang }
   }
 });
-i18next.changeLanguage(ES_lang);
 app.use(express.json())
 app.use(cors({
   origin: [config.app.CLIENT_URL]
 }))
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'", config.dauth.DOMAIN_URL as string],
+      objectSrc: ["'none'"],
+      scriptSrc: ["'self'", config.dauth.DOMAIN_URL as string],
+      styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+      connectSrc: ["'self'", config.dauth.DOMAIN_URL as string],
+      imgSrc: ["'self'", "https:", "data:"],
+      upgradeInsecureRequests: [],
+    },
+  },
 }))
-app.use((req: Request, res: Response, next: NextFunction) => {
-  res.header("Cross-Origin-Embedder-Policy", "cross-origin")
-  next()
-})
 app.use(`/api/${config.app.API_VERSION}`, mediaRoutes);
 app.use(`/api/${config.app.API_VERSION}`, licensesRoutes);
 app.use(`/api/${config.app.API_VERSION}`, subscriptionRoutes);

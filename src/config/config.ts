@@ -18,6 +18,7 @@ export type ServerConfig = {
   dauth: {
     SSID: string | undefined
     DOMAIN_NAME: string | undefined
+    DOMAIN_URL?: string
   }
 }
 
@@ -40,7 +41,8 @@ const CONFIG: ConfigEnv = {
     },
     dauth: {
       SSID: process.env.DAUTH_SSID,
-      DOMAIN_NAME: process.env.DAUTH_DOMAIN_NAME
+      DOMAIN_NAME: process.env.DAUTH_DOMAIN_NAME,
+      DOMAIN_URL: process.env.DAUTH_DOMAIN_URL
     },
   },
   production: {
@@ -57,7 +59,8 @@ const CONFIG: ConfigEnv = {
     },
     dauth: {
       SSID: process.env.DAUTH_SSID,
-      DOMAIN_NAME: process.env.DAUTH_DOMAIN_NAME
+      DOMAIN_NAME: process.env.DAUTH_DOMAIN_NAME,
+      DOMAIN_URL: process.env.DAUTH_DOMAIN_URL
     },
   }
 }

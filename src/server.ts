@@ -1,4 +1,4 @@
-import express, { Express, Request, Response, NextFunction } from "express";
+import express, { Express } from "express";
 import errorMiddleware from "./middlewares/error.middleware";
 import { ES_lang, productionStage } from "./utils/constants";
 import i18next from 'i18next';

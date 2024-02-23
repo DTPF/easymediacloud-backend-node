@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import { ES_lang, adminRole } from "../utils/constants";
+import { DEFAULT_LANG, adminRole } from "../utils/constants";
 import { responseKey, userKey } from "../core/responseKey";
 import { IRequestUser } from "../interfaces/user.interface";
 import { ServerConfig } from "../config/config";
@@ -14,7 +14,7 @@ export const dauth_md = dauth({
 })
 
 export const is_verified = async (req: IRequestUser, res: Response, next: NextFunction) => {
-  i18next.changeLanguage(ES_lang);
+  i18next.changeLanguage(DEFAULT_LANG);
   if (req.user.is_verified === false) {
     return res.status(401).send({ status: userKey.notVerified, message: t('not-verified'), mdKey: 'is_verified' })
   }
@@ -22,9 +22,9 @@ export const is_verified = async (req: IRequestUser, res: Response, next: NextFu
 }
 
 export const ensure_admin = async (req: IRequestUser, res: Response, next: NextFunction) => {
-  i18next.changeLanguage(ES_lang);
+  i18next.changeLanguage(DEFAULT_LANG);
   if (req.user.is_verified === false) {
-    return res.status(401).send({ status: userKey.notVerified, message: t('not-verified'), mdKey: 'is_verified' })
+    return res.status(401).send({ status: userKey.notVerified, message: t('not-verified'), mdKey: 'ensure_admin' })
   }
   if (req.user.role !== adminRole) {
     return res.status(401).send({ status: responseKey.unauthorized, message: t('unauthorized'), mdKey: 'ensure_admin' })

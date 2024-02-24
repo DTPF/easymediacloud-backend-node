@@ -24,7 +24,10 @@ i18next.init({
 });
 app.use(express.json())
 app.use(cors({
-  origin: [config.app.CLIENT_URL]
+  origin: [
+    config.app.CLIENT_URL,
+    config.dauth.DOMAIN_URL as string
+  ]
 }))
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },

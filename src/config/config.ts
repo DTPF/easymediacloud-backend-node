@@ -10,6 +10,7 @@ export type ServerConfig = {
     API_VERSION: string,
     CLIENT_URL: string,
     SECRET_KEY: string | undefined
+    MEDIA_URL?: string
   },
   db: {
     MONGO_URL: string,
@@ -33,7 +34,8 @@ const CONFIG: ConfigEnv = {
       PORT: process.env.PORT_SERVER || 4000,
       API_VERSION: process.env.API_VERSION || 'v1',
       CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
-      SECRET_KEY: process.env.SECRET_KEY
+      SECRET_KEY: process.env.SECRET_KEY,
+      MEDIA_URL: `${process.env.MEDIA_URL}/api/${process.env.API_VERSION}`
     },
     db: {
       MONGO_URL: `mongodb://${process.env.IP_SERVER}:${process.env.PORT_MONGO_DB}/${process.env.DB_NAME}`,
@@ -43,15 +45,16 @@ const CONFIG: ConfigEnv = {
       SSID: process.env.DAUTH_SSID,
       DOMAIN_NAME: process.env.DAUTH_DOMAIN_NAME,
       DOMAIN_URL: process.env.DAUTH_DOMAIN_URL
-    },
+    }
   },
   production: {
     app: {
-      URL: `http://${process.env.IP_SERVER}${process.env.PORT_SERVER}/api/${process.env.API_VERSION}`,
+      URL: `http://${process.env.IP_SERVER}:${process.env.PORT_SERVER}/api/${process.env.API_VERSION}`,
       PORT: process.env.PORT_SERVER || 4001,
       API_VERSION: process.env.API_VERSION || 'v1',
       CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
-      SECRET_KEY: process.env.SECRET_KEY
+      SECRET_KEY: process.env.SECRET_KEY,
+      MEDIA_URL: `${process.env.MEDIA_URL}/api/${process.env.API_VERSION}`
     },
     db: {
       MONGO_URL: `mongodb://${process.env.DB_USER_PASSWORD}@${process.env.IP_SERVER}:${process.env.PORT_MONGO_DB}/${process.env.DB_NAME}?authSource=admin`,
@@ -61,7 +64,7 @@ const CONFIG: ConfigEnv = {
       SSID: process.env.DAUTH_SSID,
       DOMAIN_NAME: process.env.DAUTH_DOMAIN_NAME,
       DOMAIN_URL: process.env.DAUTH_DOMAIN_URL
-    },
+    }
   }
 }
 

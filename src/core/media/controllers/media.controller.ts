@@ -94,7 +94,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
         const fileName = mediaPath.split('/')[mediaPath.split('/').length - 1]
         const mediaAbsolutePath = `${mediaFolderPath}/${mainFolder}/${projectName}${folders ? `/${folders}` : ''}`
         // Media Absolute Path
-        const mediaAbsolutePathToSave = `${config.app.URL}/${mediaAbsolutePath}/${fileName}`
+        const mediaAbsolutePathToSave = `${config.app.MEDIA_URL}/${mediaAbsolutePath}/${fileName}`
         // Create Media
         const newMedia = newMediaModel({ license: findLicense, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize })
         try {
@@ -133,7 +133,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
           const fileName = mediaPath.split('/')[mediaPath.split('/').length - 1]
           const mediaAbsolutePath = `${mediaFolderPath}/${mainFolder}/${projectName}${folders ? `/${folders}` : ''}`
           // Media Absolute Path
-          const mediaAbsolutePathToSave = `${config.app.URL}/${mediaAbsolutePath}/${fileName}`
+          const mediaAbsolutePathToSave = `${config.app.MEDIA_URL}/${mediaAbsolutePath}/${fileName}`
           // Create media
           const newMedia = newMediaModel({ license: findLicense, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize })
           try {

@@ -2,12 +2,12 @@ import { Response } from "express";
 import LicenseModel from "../models/license.model";
 import { mediaFolderPath } from "../../../utils/constants";
 import { responseKey, licenseKey, subscriptionKey } from "../../responseKey";
-import { IRequestUser, IUser, iUserKey } from "../../../interfaces/user.interface";
+import { IRequestUser, iUserKey } from "../../../interfaces/user.interface";
 import { createLicenseApiKeyJWT, refreshLicenseApiKeyJWT } from "../../../services/jwt";
 import jwt from "jsonwebtoken";
 import i18next from "i18next";
 import { ServerConfig } from "../../../config/config";
-import { IApiKeyToken, ILicense, ILicenseResponse, iApiKeyTokenKey, iLicenseKey } from "../../../interfaces/license.interface";
+import { IApiKeyToken, ILicense, ILicenseResponse, iLicenseKey } from "../../../interfaces/license.interface";
 import SubscriptionModel from "../../subscriptions/models/subscription.model";
 import { FREE, FREE_LICENSES_LIMIT } from "../../subscriptions/subscriptionsConstants";
 import { ISubscription, iSubscriptionKey } from "../../../interfaces/subscription.interface";
@@ -23,14 +23,14 @@ export async function createLicense(req: IRequestUser, res: Response) {
 	if (!project) {
 		return res.status(404).send({ status: licenseKey.projectRequired, message: t('data-required') })
 	}
-	const findUserLicenses: ILicense[] = await LicenseModel.find({ [iLicenseKey.user]: req.user[iUserKey._id] }).populate(SUBSCRIPTION_POPULATE).lean().exec()
+	const findUserLicenses: ILicense[] = await LicenseModel.find({ [iLicenseKey.user]: req.user._id }).populate(SUBSCRIPTION_POPULATE).lean().exec()
 	//Break if user has more than 5 free licenses
-	const userFreeLicenses = findUserLicenses.filter((license: ILicense) => (license[iLicenseKey.subscription] as ILicense['subscription'])?.[iSubscriptionKey.type] === FREE).length
+	const userFreeLicenses = findUserLicenses.filter((license: ILicense) => license.subscription?.type === FREE).length
 	if (userFreeLicenses >= FREE_LICENSES_LIMIT) {
 		return res.status(404).send({ status: licenseKey.freeLicensesLimit, message: t('licenses_free-licenses-limit') })
 	}
 	// Check if exists a license with the same project name
-	const licenseProjectExists = await findUserLicenses.find((license: ILicense) => license[iLicenseKey.project] === project)
+	const licenseProjectExists = findUserLicenses.find((license: ILicense) => license.project === project)
 	if (licenseProjectExists) {
 		return res.status(404).send({ status: licenseKey.repeatedProject, message: t('project-repeated') })
 	}
@@ -38,7 +38,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
 	if (!fs.existsSync(`./${mediaFolderPath}`)) {
 		fs.mkdirSync(`./${mediaFolderPath}`)
 	}
-	const mainFolderName = (req.user[iUserKey._id] as IUser['_id']).toString()
+	const mainFolderName = req.user._id.toString()
 	// Create main folder if not exists
 	if (!fs.existsSync(`./${mediaFolderPath}/${mainFolderName}`)) {
 		fs.mkdirSync(`./${mediaFolderPath}/${mainFolderName}`)
@@ -50,12 +50,12 @@ export async function createLicense(req: IRequestUser, res: Response) {
 		}
 		try {
 			// Create license api key
-			const apiKey = await createLicenseApiKeyJWT(project, req.user[iUserKey._id], mainFolderName)
+			const apiKey = await createLicenseApiKeyJWT(project, req.user._id as string, mainFolderName)
 			if (!apiKey) {
 				return res.status(404).send({ status: licenseKey.createApiKeyTokenError, message: t('create-api-key-token-error') })
 			}
 			const newLicense = new LicenseModel({
-				[iLicenseKey.user]: req.user[iUserKey._id],
+				[iLicenseKey.user]: req.user._id,
 				[iLicenseKey.project]: project,
 				[iLicenseKey.apiKey]: apiKey,
 			})
@@ -67,8 +67,8 @@ export async function createLicense(req: IRequestUser, res: Response) {
 			// Create subscription
 			try {
 				const newSubscription = new SubscriptionModel({
-					[iSubscriptionKey.user]: req.user[iUserKey._id],
-					[iSubscriptionKey.license]: licenseSaved[iLicenseKey._id],
+					[iSubscriptionKey.user]: req.user._id,
+					[iSubscriptionKey.license]: licenseSaved._id,
 					[iSubscriptionKey.currency]: '€',
 				})
 				const subscriptionSaved: ISubscription = await newSubscription.save()
@@ -77,8 +77,8 @@ export async function createLicense(req: IRequestUser, res: Response) {
 				}
 				// Update license subscription
 				const updateLicense: ILicense = await LicenseModel.findOneAndUpdate(
-					{ [iLicenseKey._id]: licenseSaved[iLicenseKey._id] },
-					{ [iLicenseKey.subscription]: subscriptionSaved[iSubscriptionKey._id] },
+					{ [iLicenseKey._id]: licenseSaved._id },
+					{ [iLicenseKey.subscription]: subscriptionSaved._id },
 					{ new: true }).populate(SUBSCRIPTION_POPULATE).lean().exec()
 				const licenseFiltered = await cleanLicenseResponse(updateLicense)
 				// Return license
@@ -103,11 +103,11 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 	try {
 		// Find license
 		const findLicense: ILicense = await LicenseModel.findOne({ [iLicenseKey._id]: licenseId }).populate(SUBSCRIPTION_POPULATE).lean().exec()
-		if (!findLicense || !findLicense?.[iLicenseKey.apiKey]) {
+		if (!findLicense || !findLicense?.apiKey) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 		}
 		// Decrypt license api key
-		const decryptedApiKeyToken: IApiKeyToken = jwt.verify(findLicense[iLicenseKey.apiKey], config.app.SECRET_KEY as string) as unknown as IApiKeyToken
+		const decryptedApiKeyToken: IApiKeyToken = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKeyToken
 		if (!decryptedApiKeyToken) {
 			return res.status(404).send({ status: licenseKey.getLicenseError, message: t('licenses_get-license_error') })
 		}
@@ -116,7 +116,7 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 		return res.status(200).send({
 			status: licenseKey.getLicenseSuccess,
 			message: t('licenses_get-license_success'),
-			license: { ...licenseFiltered, project: decryptedApiKeyToken[iApiKeyTokenKey.project] }
+			license: { ...licenseFiltered, project: decryptedApiKeyToken.project }
 		})
 	} catch (err) {
 		return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err })
@@ -126,8 +126,8 @@ export async function getLicenseById(req: IRequestUser, res: Response) {
 export async function getLicenseToken(req: IRequestUser, res: Response) {
 	const { licenseId } = req.params
 	try {
-		const findLicense: ILicense | undefined = await LicenseModel.findOne({ [iLicenseKey._id]: licenseId }).lean().exec()
-		if (!findLicense?.[iLicenseKey.apiKey] || (findLicense[iLicenseKey.user] as ILicense['user'])?.toString() !== (req.user[iUserKey._id] as IUser['_id']).toString()) {
+		const findLicense: ILicense = await LicenseModel.findOne({ [iLicenseKey._id]: licenseId }).lean().exec()
+		if (!findLicense || !findLicense?.apiKey) {
 			return res.status(404).send({ status: licenseKey.mediaTokenNotFound, message: t('media-token-not-found') })
 		}
 		return res.status(200).send({
@@ -143,11 +143,11 @@ export async function getLicenseToken(req: IRequestUser, res: Response) {
 export async function getLicenseTokenDecrypted(req: IRequestUser, res: Response) {
 	const { licenseId } = req.params
 	try {
-		const findLicense: ILicense | undefined = await LicenseModel.findOne({ [iLicenseKey._id]: licenseId }).lean().exec()
-		if (!findLicense?.[iLicenseKey.apiKey] || (findLicense[iLicenseKey.user] as ILicense['user'])?.toString() !== (req.user[iUserKey._id] as IUser['_id']).toString()) {
+		const findLicense: ILicense = await LicenseModel.findOne({ [iLicenseKey._id]: licenseId }).lean().exec()
+		if (!findLicense || !findLicense?.apiKey) {
 			return res.status(404).send({ status: licenseKey.mediaTokenNotFound, message: t('media-token-not-found') })
 		}
-		const decryptedApiKeyToken: IApiKeyToken = jwt.verify(findLicense[iLicenseKey.apiKey], config.app.SECRET_KEY as string) as unknown as IApiKeyToken
+		const decryptedApiKeyToken: IApiKeyToken = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKeyToken
 		return res.status(200).send({
 			status: licenseKey.getMediaTokenSuccess,
 			message: t('licenses_get-media-token_success'),
@@ -161,11 +161,11 @@ export async function getLicenseTokenDecrypted(req: IRequestUser, res: Response)
 export async function refreshLicenseToken(req: IRequestUser, res: Response) {
 	const { licenseId } = req.params
 	try {
-		const findLicense: ILicense | undefined = await LicenseModel.findOne({ [iLicenseKey._id]: licenseId }).lean().exec()
-		if (!findLicense?.apiKey || (findLicense?.user as ILicense['user'] | undefined)?.toString() !== (req.user._id as IUser['_id']).toString()) {
+		const findLicense: ILicense = await LicenseModel.findOne({ [iLicenseKey._id]: licenseId }).lean().exec()
+		if (!findLicense || !findLicense?.apiKey) {
 			return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('license-not-found') })
 		}
-		const decryptedApiKeyToken: IApiKeyToken = jwt.verify(findLicense[iLicenseKey.apiKey], config.app.SECRET_KEY as string) as unknown as IApiKeyToken
+		const decryptedApiKeyToken: IApiKeyToken = jwt.verify(findLicense.apiKey, config.app.SECRET_KEY as string) as unknown as IApiKeyToken
 		if (!decryptedApiKeyToken) {
 			return res.status(404).send({ status: licenseKey.getLicenseError, message: t('licenses_get-license_error') })
 		}
@@ -189,7 +189,7 @@ export async function refreshLicenseToken(req: IRequestUser, res: Response) {
 
 export async function getMyLicenses(req: IRequestUser, res: Response) {
 	try {
-		const findLicenses: ILicense[] = await LicenseModel.find({ [iLicenseKey.user]: (req.user[iUserKey._id] as IUser['_id']).toString() }).populate(SUBSCRIPTION_POPULATE).lean().exec()
+		const findLicenses: ILicense[] = await LicenseModel.find({ [iLicenseKey.user]: req.user._id.toString() }).populate(SUBSCRIPTION_POPULATE).lean().exec()
 		findLicenses.forEach(async (license: ILicense) => {
 			await cleanLicenseResponse(license)
 		})
@@ -232,12 +232,12 @@ export async function updateLicenseProject(req: IRequestUser, res: Response) {
 	if (!project) {
 		return res.status(404).send({ status: licenseKey.projectRequired, message: t('data-required') })
 	}
-	const findUserLicenses: ILicense[] = await LicenseModel.find({ [iLicenseKey.user]: req.user[iUserKey._id] }).lean().exec()
+	const findUserLicenses: ILicense[] = await LicenseModel.find({ [iLicenseKey.user]: req.user._id }).lean().exec()
 	if (findUserLicenses.length === 0) {
 		return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') })
 	}
 	// Check if exists a license with the same project name
-	const licenseProjectExists = findUserLicenses.find((license: ILicense) => license[iLicenseKey.project] === project)
+	const licenseProjectExists = findUserLicenses.find((license: ILicense) => license.project === project)
 	if (licenseProjectExists) {
 		return res.status(404).send({ status: licenseKey.repeatedProject, message: t('project-repeated') })
 	}

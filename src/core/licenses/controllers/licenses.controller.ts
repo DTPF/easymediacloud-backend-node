@@ -6,7 +6,6 @@ import { IRequestUser, iUserKey } from "../../../interfaces/user.interface";
 import { createLicenseApiKeyJWT, refreshLicenseApiKeyJWT } from "../../../services/jwt";
 import jwt from "jsonwebtoken";
 import i18next from "i18next";
-import { ServerConfig } from "../../../config/config";
 import { IApiKeyToken, ILicense, ILicenseResponse, iLicenseKey } from "../../../interfaces/license.interface";
 import SubscriptionModel from "../../subscriptions/models/subscription.model";
 import { FREE, FREE_LICENSES_LIMIT } from "../../subscriptions/subscriptionsConstants";
@@ -14,7 +13,7 @@ import { ISubscription, iSubscriptionKey } from "../../../interfaces/subscriptio
 import { SUBSCRIPTION_POPULATE } from "../../modelsConstants";
 import MediaModel from "../../media/models/media.model";
 import { IMedia, iMediaKey } from "../../../interfaces/media.interface";
-const config: ServerConfig = require('../../../config/config')
+import config from "../../../config/config";
 const t = i18next.t
 const fs = require("fs-extra")
 

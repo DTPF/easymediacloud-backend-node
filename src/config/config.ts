@@ -3,7 +3,7 @@ const dotenv = require('dotenv')
 dotenv.config({ path: process.env.NODE_ENV === productionStage ? '.env.production' : '.env.development' })
 const ENV = process.env.NODE_ENV || developmentStage
 
-export type ServerConfig = {
+type ServerConfig = {
   app: {
     URL: string,
     PORT: string | number,
@@ -68,4 +68,4 @@ const CONFIG: ConfigEnv = {
   }
 }
 
-module.exports = CONFIG[ENV] as ServerConfig
+export default CONFIG[ENV] as ServerConfig

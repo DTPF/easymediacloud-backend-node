@@ -2,10 +2,9 @@ import { NextFunction, Response } from "express";
 import { DEFAULT_LANG, adminRole } from "../utils/constants";
 import { responseKey, userKey } from "../core/responseKey";
 import { IRequestUser } from "../interfaces/user.interface";
-import { ServerConfig } from "../config/config";
 import i18next from "i18next";
 import { dauth } from "dauth-md-node";
-const config: ServerConfig = require('../config/config')
+import config from "../config/config";
 const t = i18next.t
 
 export const dauth_md = dauth({

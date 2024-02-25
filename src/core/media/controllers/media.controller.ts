@@ -6,7 +6,6 @@ import { IRequestUser, iUserKey } from "../../../interfaces/user.interface";
 import jwt from "jsonwebtoken";
 import LicenseModel from "../../licenses/models/license.model";
 import MediaModel from "../models/media.model";
-import { ServerConfig } from "../../../config/config";
 import { licenseKey, mediaKey, responseKey } from "../../responseKey";
 import { IApiKeyToken, ILicense, TRequests, iApiKeyTokenKey, iLicenseKey, iRequestsKey } from "../../../interfaces/license.interface";
 import { IMedia, iMediaKey } from "../../../interfaces/media.interface";
@@ -15,7 +14,7 @@ import moment from "moment";
 import SubscriptionModel from "../../subscriptions/models/subscription.model";
 import { LICENSE_POPULATE, SUBSCRIPTION_POPULATE } from "../../modelsConstants";
 import { ISubscription, iSubscriptionKey } from "../../../interfaces/subscription.interface";
-const config: ServerConfig = require('../../../config/config')
+import config from '../../../config/config'
 const fs = require("fs-extra")
 const path = require("path")
 const t = i18next.t

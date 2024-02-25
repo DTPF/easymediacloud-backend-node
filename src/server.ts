@@ -4,11 +4,10 @@ import { DEFAULT_LANG, productionStage } from "./utils/constants";
 import i18next from 'i18next';
 import { englishLang } from "./assets/locale/en";
 import { spanishLang } from "./assets/locale/es";
-import { ServerConfig } from "./config/config";
-const config: ServerConfig = require('./config/config')
+import config from "./config/config";
 const helmet = require('helmet')
 const cors = require('cors')
-const app: Express = express()
+const server: Express = express()
 const path = require("path")
 // Routes
 const mediaRoutes = require("./core/media/router/media.router");
@@ -22,14 +21,14 @@ i18next.init({
     en: { translation: englishLang }
   }
 });
-app.use(express.json())
-app.use(cors({
+server.use(express.json())
+server.use(cors({
   origin: [
     config.app.CLIENT_URL,
     config.dauth.DOMAIN_URL as string
   ]
 }))
-app.use(helmet({
+server.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   contentSecurityPolicy: {
     directives: {
@@ -43,18 +42,18 @@ app.use(helmet({
     },
   },
 }))
-app.use(`/api/${config.app.API_VERSION}`, mediaRoutes);
-app.use(`/api/${config.app.API_VERSION}`, licensesRoutes);
-app.use(`/api/${config.app.API_VERSION}`, subscriptionRoutes);
+server.use(`/api/${config.app.API_VERSION}`, mediaRoutes);
+server.use(`/api/${config.app.API_VERSION}`, licensesRoutes);
+server.use(`/api/${config.app.API_VERSION}`, subscriptionRoutes);
 if (process.env.NODE_ENV === productionStage) {
-  app.get("/client/service-worker.js", (req, res) => {
+  server.get("/client/service-worker.js", (req, res) => {
     res.sendFile(path.resolve(__dirname, "client", "service-worker.js"));
   });
-  app.use('/', express.static('client', { redirect: false }))
-  app.get('*', function (req, res, next) {
+  server.use('/', express.static('client', { redirect: false }))
+  server.get('*', function (req, res, next) {
     res.sendFile(path.resolve('client/index.html'))
   })
 }
-app.use(errorMiddleware)
+server.use(errorMiddleware)
 
-module.exports = app;
+export default server;

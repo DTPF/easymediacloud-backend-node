@@ -1,7 +1,6 @@
-import { ServerConfig } from "./config/config";
+import config from "./config/config";
+import server from "./server";
 const mongoose = require('mongoose');
-const server = require("./server");
-const config: ServerConfig = require('./config/config')
 
 try {
   mongoose.connect(config.db.MONGO_URL)

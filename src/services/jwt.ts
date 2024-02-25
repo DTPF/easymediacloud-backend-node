@@ -1,9 +1,8 @@
 import jwt from "jsonwebtoken";
-import { ServerConfig } from "../config/config";
 import mongoose from "mongoose";
 import moment from "moment";
 import { IApiKeyToken } from "../interfaces/license.interface";
-const config: ServerConfig = require('../config/config')
+import config from "../config/config";
 
 export async function createLicenseApiKeyJWT(project: string, userId: string, mainFolderName: string) {
   const payload = {

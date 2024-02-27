@@ -11,7 +11,7 @@ api.
   get("/refresh-license-token/:licenseId", [dauth_md, is_verified], controller.refreshLicenseToken).
   get("/get-my-licenses", [dauth_md, is_verified], controller.getMyLicenses).
   patch("/enable-license/:licenseId", [dauth_md, ensure_admin], controller.enableLicense).
-  patch("/set-online-license/:licenseId", [dauth_md, is_verified], controller.setOnlineLicense).
+  patch("/set-license-online/:licenseId", [dauth_md, is_verified], controller.setOnlineLicense).
   patch("/update-license-project/:licenseId", [dauth_md, is_verified], controller.updateLicenseProject).
   delete("/delete-license/:licenseId", [dauth_md, is_verified], controller.deleteLicense)
 

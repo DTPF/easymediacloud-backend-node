@@ -13,7 +13,7 @@ export const dauth_md = dauth({
 })
 
 export const is_verified = async (req: IRequestUser, res: Response, next: NextFunction) => {
-  i18next.changeLanguage(DEFAULT_LANG);
+  i18next.changeLanguage(req.user.language ?? DEFAULT_LANG);
   if (req.user.is_verified === false) {
     return res.status(401).send({ status: userKey.notVerified, message: t('not-verified'), mdKey: 'is_verified' })
   }
@@ -21,7 +21,7 @@ export const is_verified = async (req: IRequestUser, res: Response, next: NextFu
 }
 
 export const ensure_admin = async (req: IRequestUser, res: Response, next: NextFunction) => {
-  i18next.changeLanguage(DEFAULT_LANG);
+  i18next.changeLanguage(req.user.language ?? DEFAULT_LANG);
   if (req.user.is_verified === false) {
     return res.status(401).send({ status: userKey.notVerified, message: t('not-verified'), mdKey: 'ensure_admin' })
   }

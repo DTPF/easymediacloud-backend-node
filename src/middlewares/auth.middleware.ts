@@ -8,7 +8,7 @@ import config from "../config/config";
 const t = i18next.t
 
 export const dauth_md = dauth({
-  ssid: config.dauth.SSID as string,
+  tsk: config.dauth.TSK as string,
   domainName: config.dauth.DOMAIN_NAME as string
 })
 

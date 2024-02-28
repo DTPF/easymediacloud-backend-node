@@ -17,7 +17,7 @@ type ServerConfig = {
     PORT_MONGO_DB: string | number
   },
   dauth: {
-    SSID: string | undefined
+    TSK: string | undefined
     DOMAIN_NAME: string | undefined
     DOMAIN_URL?: string
   }
@@ -42,7 +42,7 @@ const CONFIG: ConfigEnv = {
       PORT_MONGO_DB: process.env.PORT_MONGO_DB || 27017
     },
     dauth: {
-      SSID: process.env.DAUTH_SSID,
+      TSK: process.env.DAUTH_TSK,
       DOMAIN_NAME: process.env.DAUTH_DOMAIN_NAME,
       DOMAIN_URL: process.env.DAUTH_DOMAIN_URL
     }
@@ -61,7 +61,7 @@ const CONFIG: ConfigEnv = {
       PORT_MONGO_DB: process.env.PORT_MONGO_DB || 27017
     },
     dauth: {
-      SSID: process.env.DAUTH_SSID,
+      TSK: process.env.DAUTH_TSK,
       DOMAIN_NAME: process.env.DAUTH_DOMAIN_NAME,
       DOMAIN_URL: process.env.DAUTH_DOMAIN_URL
     }

@@ -10,6 +10,7 @@ export interface IMedia {
   fileName: string
   size: number
   sizeT?: string
+  type: string
   enabled: boolean
   createdAt: Date
   updatedAt: Date
@@ -26,9 +27,20 @@ export const iMediaKey = {
   online: 'online' as keyof typeof Object.keys,
   size: 'size' as keyof typeof Object.keys,
   sizeT: 'sizeT' as keyof typeof Object.keys,
+  type: 'type' as keyof typeof Object.keys,
   enabled: 'enabled' as keyof typeof Object.keys,
   createdAt: 'createdAt' as keyof typeof Object.keys,
   updatedAt: 'updatedAt' as keyof typeof Object.keys,
   totalRequests: 'totalRequests' as keyof typeof Object.keys,
 }
 //////////////////////////////////////
+
+export interface IMediaResponse {
+  _id: string
+  url: string
+  size?: string
+  type: string
+  enabled: boolean
+  totalRequests: number
+  createdAt: Date
+}

@@ -10,6 +10,7 @@ const MediaSchema = new Schema({
   [iMediaKey.fileName]: { type: String, required: true },
   [iMediaKey.size]: { type: Number, default: 0 },
   [iMediaKey.sizeT]: { type: String, default: '0 B' },
+  [iMediaKey.type]: { type: String, required: true },
   [iMediaKey.enabled]: { type: Boolean, default: true },
   [iMediaKey.totalRequests]: { type: Number, default: 0 },
 }, {

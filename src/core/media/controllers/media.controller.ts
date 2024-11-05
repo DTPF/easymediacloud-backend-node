@@ -8,7 +8,7 @@ import LicenseModel from "../../licenses/models/license.model";
 import MediaModel from "../models/media.model";
 import { licenseKey, mediaKey, responseKey } from "../../responseKey";
 import { IApiKeyToken, ILicense, TRequests, iApiKeyTokenKey, iLicenseKey, iRequestsKey } from "../../../interfaces/license.interface";
-import { IMedia, iMediaKey } from "../../../interfaces/media.interface";
+import { IMedia, IMediaResponse, iMediaKey } from "../../../interfaces/media.interface";
 import { convertBytes } from "../../../utils/getFolderSize";
 import moment from "moment";
 import SubscriptionModel from "../../subscriptions/models/subscription.model";
@@ -33,6 +33,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
     if (!decodedApiKeyToken) {
       return response.status(404).send({ status: mediaKey.apiKeyNotFound, message: t('api-key-not-found') })
     }
+    decodedApiKeyToken = decodedApiKeyToken as IApiKeyToken
     // Find license
     const findLicense: ILicense = await LicenseModel.findOne({ [iLicenseKey.apiKey]: req.headers.authorization }).populate(SUBSCRIPTION_POPULATE).lean().exec()
     if (!findLicense || !decodedApiKeyToken[iApiKeyTokenKey.apiKey]) {
@@ -85,6 +86,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
       if (req.files.media.length === undefined) {
         const mediaPath = req.files.media.path
         const mediaSize = req.files.media.size
+        const mediaType = req.files.media.type
         if (!mediaPath) {
           fs.unlinkSync(mediaPath)
           return response.status(500).send({ status: mediaKey.createMediaError, message: t('create-media-error'), err: err })
@@ -95,19 +97,20 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
         // Media Absolute Path
         const mediaAbsolutePathToSave = `${config.app.MEDIA_URL}/${mediaAbsolutePath}/${fileName}`
         // Create Media
-        const newMedia = newMediaModel({ license: findLicense, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize })
+        const newMedia = newMediaModel({ license: findLicense, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize, mediaType })
         try {
           const mediaSaved: IMedia = await newMedia.save()
           const requestMediaObject = {
             id: mediaSaved._id,
             url: mediaSaved.url,
             size: mediaSaved.sizeT,
+            type: mediaSaved.type,
             createdAt: mediaSaved.createdAt,
           }
           // Update license size and total files
-          await LicenseModel.findOneAndUpdate({ [iLicenseKey._id]: findLicense[iLicenseKey._id] }, {
+          await LicenseModel.findOneAndUpdate({ [iLicenseKey._id]: findLicense._id }, {
             $inc: { [iLicenseKey.totalFiles]: 1, [iLicenseKey.size]: mediaSize },
-            [iLicenseKey.sizeT]: convertBytes(findLicense[iLicenseKey.size] as ILicense + mediaSize)
+            [iLicenseKey.sizeT]: convertBytes(findLicense.size + mediaSize)
           }, { new: true }).lean().exec()
           return response.status(200).send({ status: mediaKey.createMediaSuccess, message: t('create-media-success'), media: requestMediaObject })
         } catch (err: any) {
@@ -125,6 +128,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
         for (const media of req.files.media) {
           const mediaPath = media.path
           const mediaSize = media.size
+          const mediaType = media.type
           if (!mediaPath) {
             fs.unlinkSync(mediaPath)
             return response.status(500).send({ status: mediaKey.createMediaError, message: t('create-media-error'), err: err })
@@ -134,7 +138,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
           // Media Absolute Path
           const mediaAbsolutePathToSave = `${config.app.MEDIA_URL}/${mediaAbsolutePath}/${fileName}`
           // Create media
-          const newMedia = newMediaModel({ license: findLicense, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize })
+          const newMedia = newMediaModel({ license: findLicense, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize, mediaType })
           try {
             const mediaSaved: IMedia = await newMedia.save()
             totalSize = totalSize + mediaSize
@@ -320,11 +324,13 @@ export async function deleteMedia(req: IRequestUser | any, response: Response) {
 }
 
 export async function getMyMedia(req: IRequestUser | any, response: Response) {
+  const { index = 0, limit = Infinity } = req.query
   try {
-    const findMedia: IMedia[] = await MediaModel.find({ [iMediaKey.user]: req.user[iUserKey._id] }).lean().exec()
+    const findMedia: IMedia[] = await MediaModel.find({ [iMediaKey.user]: req.user[iUserKey._id] }).skip(Number(index)).limit(Number(limit)).lean().exec()
     if (!findMedia) {
       return response.status(404).send({ status: mediaKey.mediaNotFound, message: t('media-not-found') })
     }
+    findMedia.forEach(media => delete media.__v);
     return response.status(200).send({ status: mediaKey.getMediaSuccess, message: t('get-media-success'), media: findMedia })
   } catch (err) {
     return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
@@ -332,18 +338,31 @@ export async function getMyMedia(req: IRequestUser | any, response: Response) {
 }
 
 export async function getMediaByLicense(req: IRequestUser | any, response: Response) {
+  const { index = 0, limit = Infinity } = req.query
   const { licenseId } = req.params
   try {
     const findLicense: ILicense = await LicenseModel.findOne({ [iLicenseKey._id]: licenseId }).lean().exec()
     if (!findLicense) {
       return response.status(404).send({ status: licenseKey.licenseNotFound, message: t('license-not-found') })
     }
-    const findMedia: IMedia[] = await MediaModel.find({ [iMediaKey.license]: licenseId }).lean().exec()
+    const findMedia: IMedia[] = await MediaModel.find({ [iMediaKey.license]: licenseId }).skip(Number(index)).limit(Number(limit)).lean().exec()
     if (!findMedia) {
       return response.status(404).send({ status: mediaKey.mediaNotFound, message: t('media-not-found') })
     }
-    return response.status(200).send({ status: mediaKey.getMediaSuccess, message: t('get-media-success'), media: findMedia })
-
+    const formattedMedia: IMediaResponse[] = []
+    findMedia.forEach(media => {
+      const mediaObject = {
+        _id: media._id,
+        url: media.url,
+        size: media.sizeT,
+        type: media.type,
+        enabled: media.enabled,
+        totalRequests: media.totalRequests,
+        createdAt: media.createdAt
+      }
+      formattedMedia.push(mediaObject)
+    });
+    return response.status(200).send({ status: mediaKey.getMediaSuccess, message: t('get-media-success'), media: formattedMedia })
   } catch (err) {
     return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
   }
@@ -359,8 +378,9 @@ type TNewMediaModel = {
   mediaAbsolutePathToSave: string
   fileName: string
   mediaSize: number
+  mediaType: string
 }
-const newMediaModel = ({ license, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize }: TNewMediaModel) => {
+const newMediaModel = ({ license, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize, mediaType }: TNewMediaModel) => {
   return new MediaModel({
     [iMediaKey.user]: userId,
     [iMediaKey.license]: license[iLicenseKey._id],
@@ -368,6 +388,7 @@ const newMediaModel = ({ license, userId, folders, mediaAbsolutePathToSave, file
     [iMediaKey.url]: mediaAbsolutePathToSave,
     [iMediaKey.fileName]: fileName,
     [iMediaKey.size]: mediaSize,
-    [iMediaKey.sizeT]: convertBytes(mediaSize)
+    [iMediaKey.sizeT]: convertBytes(mediaSize),
+    [iMediaKey.type]: mediaType,
   })
 }

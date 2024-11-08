@@ -387,7 +387,6 @@ export async function setOnlineLicense(req: IRequestUser, res: Response) {
     return res.status(200).send({
       status: online ? licenseKey.enableOnlineSuccess : licenseKey.disableOnlineSuccess,
       message: online ? t('licenses_enable-license_success') : t('licenses_disable-license_success'),
-      license: findLicense,
     });
   } catch (err) {
     return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err });
@@ -458,7 +457,6 @@ export async function deleteLicense(req: IRequestUser, res: Response) {
     return res.status(200).send({
       status: licenseKey.deleteLicenseSuccess,
       message: t('licenses_delete-license_success'),
-      license: deleteLicense,
     });
   } catch (err) {
     return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err });
@@ -466,11 +464,11 @@ export async function deleteLicense(req: IRequestUser, res: Response) {
 }
 
 async function cleanLicenseResponse(license: ILicenseResponse) {
-  delete license[iLicenseKey.user];
-  delete license[iLicenseKey.apiKey];
+  // delete license[iLicenseKey.user];
+  // delete license[iLicenseKey.apiKey];
+  // delete (license[iLicenseKey.subscription] as ILicense['subscription']).user;
+  // delete (license[iLicenseKey.subscription] as ILicense['subscription']).license;
   delete license[iLicenseKey.requests];
-  delete (license[iLicenseKey.subscription] as ILicense['subscription']).user;
-  delete (license[iLicenseKey.subscription] as ILicense['subscription']).license;
   delete (license[iLicenseKey.subscription] as ILicense['subscription']).__v;
   delete license.__v;
   return license as ILicense;

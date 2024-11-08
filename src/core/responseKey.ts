@@ -8,7 +8,7 @@ export const userKey = {
   notVerified: 'not-verified',
   nicknameRequired: 'nickname-required',
   repeatedNickname: 'repeated-nickname',
-}
+};
 
 export const mediaKey = {
   createMediaSuccess: 'media-created-success',
@@ -21,7 +21,7 @@ export const mediaKey = {
   mediaDontBelongToLicense: 'media-dont-belong-to-license',
   getMediaSuccess: 'media-get-success',
   mediaNotFound: 'media-not-found',
-}
+};
 
 export const licenseKey = {
   projectRequired: 'project-required',
@@ -54,7 +54,7 @@ export const licenseKey = {
   deleteLicenseSuccess: 'delete-license-success',
   licenseOverMaxRequests: 'license-over-max-requests',
   freeLicensesLimit: 'free-licenses-limit',
-}
+};
 
 export const subscriptionKey = {
   subscriptionNotFound: 'subscription-not-found',
@@ -70,7 +70,7 @@ export const subscriptionKey = {
   subscriptionUpdatedSuccess: 'subscription-updated-success',
   subscriptionServerError: 'subscription-server-error',
   subscriptionNotAllowed: 'subscription-update-not-allowed',
-}
+};
 
 export const responseKey = {
   serverError: 'server-error',
@@ -80,4 +80,4 @@ export const responseKey = {
   tokenExpired: 'token-expired',
   tokenInvalid: 'token-invalid',
   tokenNotFound: 'token-not-found',
-}
+};

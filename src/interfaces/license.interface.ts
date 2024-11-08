@@ -1,25 +1,25 @@
-import { ObjectId } from "mongoose"
-import { ISubscription } from "./subscription.interface"
-import { IUser } from "./user.interface"
+import { ObjectId } from 'mongoose';
+import { ISubscription } from './subscription.interface';
+import { IUser } from './user.interface';
 
 //////////////////////////////////////
 export interface ILicense {
-  _id: string
-  user: IUser
-  project: string
-  apiKey: string
-  enabled: boolean
-  online: boolean
-  size: number
-  sizeT: string
-  totalFiles: number
-  subscription: ISubscription
-  requests: TRequests[]
-  totalRequests: number
-  requestsInDataRange: number
-  createdAt: Date
-  updatedAt: Date
-  __v: any
+  _id: string;
+  user: IUser;
+  project: string;
+  apiKey: string;
+  enabled: boolean;
+  online: boolean;
+  size: number;
+  sizeT: string;
+  totalFiles: number;
+  subscription: ISubscription;
+  requests: TRequests[];
+  totalRequests: number;
+  requestsInDataRange: number;
+  createdAt: Date;
+  updatedAt: Date;
+  __v: any;
 }
 export const iLicenseKey = {
   _id: '_id' as keyof typeof Object.keys,
@@ -37,30 +37,30 @@ export const iLicenseKey = {
   requestsInDataRange: 'requestsInDataRange' as keyof typeof Object.keys,
   createdAt: 'createdAt' as keyof typeof Object.keys,
   updatedAt: 'updatedAt' as keyof typeof Object.keys,
-}
+};
 //////////////////////////////////////
 
 //////////////////////////////////////
 export type TRequests = {
-  media: string
-  reqIp: string
-  createdAt: Date
-}
+  media: string;
+  reqIp: string;
+  createdAt: Date;
+};
 export const iRequestsKey = {
   media: 'media' as keyof typeof Object.keys,
   reqIp: 'reqIp' as keyof typeof Object.keys,
-  createdAt: 'createdAt' as keyof typeof Object.keys
-}
+  createdAt: 'createdAt' as keyof typeof Object.keys,
+};
 //////////////////////////////////////
 
 //////////////////////////////////////
 export interface IApiKeyToken {
-  id: string
-  user: string
-  project: string
-  apiKey: string | ObjectId
-  createdAt: Date
-  updatedAt: Date
+  id: string;
+  user: string;
+  project: string;
+  apiKey: string | ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
 }
 export const iApiKeyTokenKey = {
   id: 'id' as keyof typeof Object.keys,
@@ -69,24 +69,24 @@ export const iApiKeyTokenKey = {
   apiKey: 'apiKey' as keyof typeof Object.keys,
   createdAt: 'createdAt' as keyof typeof Object.keys,
   updatedAt: 'updatedAt' as keyof typeof Object.keys,
-}
+};
 //////////////////////////////////////
 
-export interface ILicenseResponse extends ILicense{
-  _id: string
-  user: IUser | any
-  project: string
-  apiKey: string | any
-  enabled: boolean
-  online: boolean
-  size: number
-  sizeT: string
-  totalFiles: number
-  subscription: ISubscription
-  requests: TRequests[] | any
-  totalRequests: number
-  requestsInDataRange: number
-  createdAt: Date
-  updatedAt: Date
-  __v: any
+export interface ILicenseResponse extends ILicense {
+  _id: string;
+  user: IUser | any;
+  project: string;
+  apiKey: string | any;
+  enabled: boolean;
+  online: boolean;
+  size: number;
+  sizeT: string;
+  totalFiles: number;
+  subscription: ISubscription;
+  requests: TRequests[] | any;
+  totalRequests: number;
+  requestsInDataRange: number;
+  createdAt: Date;
+  updatedAt: Date;
+  __v: any;
 }

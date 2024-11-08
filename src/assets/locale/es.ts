@@ -7,8 +7,9 @@ export const spanishLang = {
   'delete-user-admin_unauthorized': 'No tienes permisos para borrar usuarios',
   'user-not-found': 'El usuario no existe',
   'update-user-role_unauthorized': 'No tienes permisos para actualizar el rol del usuario',
-  'update_user_success': 'Usuario actualizado correctamente',
-  'avatar-extension-not-allowed': 'La extensión de la imagen no es válida. (Extensiones permitidas: .png y .jpg)',
+  update_user_success: 'Usuario actualizado correctamente',
+  'avatar-extension-not-allowed':
+    'La extensión de la imagen no es válida. (Extensiones permitidas: .png y .jpg)',
   'update_user-nickname-exists': 'El nickname ya existe, prueba con otro',
 
   // Licenses
@@ -43,16 +44,16 @@ export const spanishLang = {
   // Subscription
   'subscription-not-found': 'La suscripción no existe',
   'subscription-id_required': 'Falta el id de la suscripción',
-  'subscription_data_required': 'Falta información para actualizar la suscripción',
-  'subscription_type_invalid': 'El tipo de suscripción no es válido',
-  'subscription_price_invalid': 'El precio de la suscripción no es válido',
-  'subscription_currency_invalid': 'La moneda de la suscripción no es válida',
-  'subscription_maxSize_invalid': 'El tamaño máximo de la suscripción no es válido',
-  'subscription_expire_invalid': 'La fecha de expiración de la suscripción no es válida',
-  'subscription_enabled_invalid': 'El estado de la suscripción no es válido',
+  subscription_data_required: 'Falta información para actualizar la suscripción',
+  subscription_type_invalid: 'El tipo de suscripción no es válido',
+  subscription_price_invalid: 'El precio de la suscripción no es válido',
+  subscription_currency_invalid: 'La moneda de la suscripción no es válida',
+  subscription_maxSize_invalid: 'El tamaño máximo de la suscripción no es válido',
+  subscription_expire_invalid: 'La fecha de expiración de la suscripción no es válida',
+  subscription_enabled_invalid: 'El estado de la suscripción no es válido',
   'subscription_updated-success': 'Suscripción actualizada correctamente',
-  'subscription_update_error': 'Error al actualizar la suscripción',
-  'subscription_action_not_allowed': 'No tienes permisos para realizar esta acción',
+  subscription_update_error: 'Error al actualizar la suscripción',
+  subscription_action_not_allowed: 'No tienes permisos para realizar esta acción',
 
   // Media
   'create-media-success': 'Archivo/s creado correctamente',
@@ -68,8 +69,8 @@ export const spanishLang = {
   'server-error': 'Error del servidor',
   'data-required': 'Falta información en la petición',
   'media-not-exists': 'El archivo que buscas no existe.',
-  'unauthorized': 'No tienes permisos para realizar esta acción',
+  unauthorized: 'No tienes permisos para realizar esta acción',
   'token-not-valid': 'El token no es válido',
   'token-expired': 'El token ha expirado',
   'not-verified': 'El usuario no está verificado',
-}
+};

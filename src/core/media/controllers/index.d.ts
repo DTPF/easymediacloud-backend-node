@@ -1,1 +1,1 @@
-declare module "connect-multiparty"
+declare module 'connect-multiparty';

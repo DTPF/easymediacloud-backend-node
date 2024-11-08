@@ -7,7 +7,7 @@ export const englishLang = {
   'delete-user-admin_unauthorized': 'You do not have permission to delete users',
   'user-not-found': 'User does not exist',
   'update-user-role_unauthorized': 'You do not have permission to update the user role',
-  'update_user_success': 'User updated successfully',
+  update_user_success: 'User updated successfully',
   'avatar-extension-not-allowed': 'Image extension not allowed. (Allowed extensions: .png and .jpg)',
   'update_user-nickname-exists': 'The nickname already exists, please try another one',
 
@@ -43,16 +43,16 @@ export const englishLang = {
   // Subscription
   'subscription-not-found': 'Subscription does not exist',
   'subscription-id_required': 'Subscription ID is missing',
-  'subscription_data_required': 'Information required to update the subscription is missing',
-  'subscription_type_invalid': 'Subscription type is invalid',
-  'subscription_price_invalid': 'Subscription price is invalid',
-  'subscription_currency_invalid': 'Subscription currency is invalid',
-  'subscription_maxSize_invalid': 'Subscription maximum size is invalid',
-  'subscription_expire_invalid': 'Subscription expiration date is invalid',
-  'subscription_enabled_invalid': 'Subscription status is invalid',
+  subscription_data_required: 'Information required to update the subscription is missing',
+  subscription_type_invalid: 'Subscription type is invalid',
+  subscription_price_invalid: 'Subscription price is invalid',
+  subscription_currency_invalid: 'Subscription currency is invalid',
+  subscription_maxSize_invalid: 'Subscription maximum size is invalid',
+  subscription_expire_invalid: 'Subscription expiration date is invalid',
+  subscription_enabled_invalid: 'Subscription status is invalid',
   'subscription_updated-success': 'Subscription updated successfully',
-  'subscription_update_error': 'Error updating the subscription',
-  'subscription_action_not_allowed': 'You do not have permission to perform this action',
+  subscription_update_error: 'Error updating the subscription',
+  subscription_action_not_allowed: 'You do not have permission to perform this action',
 
   // Media
   'create-media-success': 'File(s) created successfully',
@@ -68,8 +68,8 @@ export const englishLang = {
   'server-error': 'Server error',
   'data-required': 'Information missing in the request',
   'media-not-exists': 'The file you are looking for does not exist',
-  'unauthorized': 'You do not have permission to perform this action',
+  unauthorized: 'You do not have permission to perform this action',
   'token-not-valid': 'The token is not valid',
   'token-expired': 'The token has expired',
-  'not-verified': 'The user is not verified'
-}
+  'not-verified': 'The user is not verified',
+};

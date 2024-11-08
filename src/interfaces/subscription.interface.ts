@@ -1,22 +1,22 @@
-import { ILicense } from "./license.interface"
+import { ILicense } from './license.interface';
 
 //////////////////////////////////////
 export interface ISubscription {
-  _id?: string
-  user?: string
-  license?: string | ILicense
-  type: SubscriptionType
-  price: number
-  currency: string
-  maxSize: number
-  maxSizeT: string
-  expire: Date
-  enabled: boolean
-  requestsDataRange: TRequestsDataRange
-  maxRequests: number
-  createdAt: Date
-  updatedAt: Date
-  __v?: number | string | undefined
+  _id?: string;
+  user?: string;
+  license?: string | ILicense;
+  type: SubscriptionType;
+  price: number;
+  currency: string;
+  maxSize: number;
+  maxSizeT: string;
+  expire: Date;
+  enabled: boolean;
+  requestsDataRange: TRequestsDataRange;
+  maxRequests: number;
+  createdAt: Date;
+  updatedAt: Date;
+  __v?: number | string | undefined;
 }
 export const iSubscriptionKey = {
   _id: '_id' as keyof typeof Object.keys,
@@ -33,16 +33,16 @@ export const iSubscriptionKey = {
   maxRequests: 'maxRequests' as keyof typeof Object.keys,
   createdAt: 'createdAt' as keyof typeof Object.keys,
   updatedAt: 'updatedAt' as keyof typeof Object.keys,
-}
+};
 
 export type TRequestsDataRange = {
-  quantity: number
-  cicle: string
-}
+  quantity: number;
+  cicle: string;
+};
 export const iRequestsDataRangeKey = {
   quantity: 'quantity' as keyof typeof Object.keys,
   cicle: 'cicle' as keyof typeof Object.keys,
-}
+};
 //////////////////////////////////////
 
-export type SubscriptionType = 'free' | 'basic' | 'premium'
+export type SubscriptionType = 'free' | 'basic' | 'premium';

@@ -1,25 +1,25 @@
-import { Request } from "express"
-import { ILicense } from "./license.interface"
-import { Types } from "mongoose"
+import { Request } from 'express';
+import { ILicense } from './license.interface';
+import { Types } from 'mongoose';
 
 export interface IUser {
-  _id: Types.ObjectId | string
-  dauthLicense?: ILicense
-  sid: string
-  name: string
-  lastname: string
-  nickname: string
-  email: string
-  password?: string
-  is_verified: boolean
-  language: string
-  avatar: string
-  role: string
-  tel_prefix: string
-  tel_suffix: string
-  createdAt: Date
-  updatedAt: Date
-  last_login: Date
+  _id: Types.ObjectId | string;
+  dauthLicense?: ILicense;
+  sid: string;
+  name: string;
+  lastname: string;
+  nickname: string;
+  email: string;
+  password?: string;
+  is_verified: boolean;
+  language: string;
+  avatar: string;
+  role: string;
+  tel_prefix: string;
+  tel_suffix: string;
+  createdAt: Date;
+  updatedAt: Date;
+  last_login: Date;
 }
 export const iUserKey = {
   _id: '_id' as keyof typeof Object.keys,
@@ -39,25 +39,25 @@ export const iUserKey = {
   createdAt: 'createdAt' as keyof typeof Object.keys,
   updatedAt: 'updatedAt' as keyof typeof Object.keys,
   last_login: 'last_login' as keyof typeof Object.keys,
-}
+};
 
 export interface IRequestUser extends Request {
-  user: IUser
-  auth: IAccessToken
+  user: IUser;
+  auth: IAccessToken;
   files: {
-    image: { path: string },
-    avatar: { path: string }
-  },
+    image: { path: string };
+    avatar: { path: string };
+  };
   headers: {
-    authorization: string
-  }
+    authorization: string;
+  };
 }
 
 export interface IAccessToken {
-  _id: string | Types.ObjectId
-  sid: string
-  email: string
-  createToken?: number
-  exp?: number
-  iat?: number
+  _id: string | Types.ObjectId;
+  sid: string;
+  email: string;
+  createToken?: number;
+  exp?: number;
+  iat?: number;
 }

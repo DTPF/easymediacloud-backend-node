@@ -100,19 +100,12 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
         const newMedia = newMediaModel({ license: findLicense, userId, folders, mediaAbsolutePathToSave, fileName, mediaSize, mediaType })
         try {
           const mediaSaved: IMedia = await newMedia.save()
-          const requestMediaObject = {
-            id: mediaSaved._id,
-            url: mediaSaved.url,
-            size: mediaSaved.sizeT,
-            type: mediaSaved.type,
-            createdAt: mediaSaved.createdAt,
-          }
           // Update license size and total files
           await LicenseModel.findOneAndUpdate({ [iLicenseKey._id]: findLicense._id }, {
             $inc: { [iLicenseKey.totalFiles]: 1, [iLicenseKey.size]: mediaSize },
             [iLicenseKey.sizeT]: convertBytes(findLicense.size + mediaSize)
           }, { new: true }).lean().exec()
-          return response.status(200).send({ status: mediaKey.createMediaSuccess, message: t('create-media-success'), media: requestMediaObject })
+          return response.status(200).send({ status: mediaKey.createMediaSuccess, message: t('create-media-success'), media: mediaSaved })
         } catch (err: any) {
           fs.unlinkSync(mediaPath)
           return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
@@ -349,20 +342,8 @@ export async function getMediaByLicense(req: IRequestUser | any, response: Respo
     if (!findMedia) {
       return response.status(404).send({ status: mediaKey.mediaNotFound, message: t('media-not-found') })
     }
-    const formattedMedia: IMediaResponse[] = []
-    findMedia.forEach(media => {
-      const mediaObject = {
-        _id: media._id,
-        url: media.url,
-        size: media.sizeT,
-        type: media.type,
-        enabled: media.enabled,
-        totalRequests: media.totalRequests,
-        createdAt: media.createdAt
-      }
-      formattedMedia.push(mediaObject)
-    });
-    return response.status(200).send({ status: mediaKey.getMediaSuccess, message: t('get-media-success'), media: formattedMedia })
+    findMedia.map(media => delete media.__v)
+    return response.status(200).send({ status: mediaKey.getMediaSuccess, message: t('get-media-success'), media: findMedia })
   } catch (err) {
     return response.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err })
   }

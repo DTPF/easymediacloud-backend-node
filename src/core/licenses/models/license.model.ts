@@ -6,6 +6,7 @@ const LicenseSchema = new Schema(
   {
     [iLicenseKey.user]: { type: Schema.Types.ObjectId, ref: USER_MODEL },
     [iLicenseKey.subscription]: { type: Schema.Types.ObjectId, ref: SUBSCRIPTION_MODEL },
+    [iLicenseKey.name]: { type: String, required: true },
     [iLicenseKey.project]: { type: String, required: true },
     [iLicenseKey.apiKey]: { type: String, required: true, unique: true },
     [iLicenseKey.enabled]: { type: Boolean, required: true, default: true },

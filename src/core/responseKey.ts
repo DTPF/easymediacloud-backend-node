@@ -25,6 +25,7 @@ export const mediaKey = {
 
 export const licenseKey = {
   projectRequired: 'project-required',
+  nameRequired: 'name-required',
   createdSuccess: 'license-created-success',
   repeatedProject: 'repeated-project',
   repeatedLicense: 'repeated-license',

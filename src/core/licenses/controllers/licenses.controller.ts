@@ -18,9 +18,12 @@ const t = i18next.t;
 const fs = require('fs-extra');
 
 export async function createLicense(req: IRequestUser, res: Response) {
-  const { project }: { project: string } = req.body;
+  const { project, name }: { project: string, name: string } = req.body;
   if (!project) {
     return res.status(404).send({ status: licenseKey.projectRequired, message: t('data-required') });
+  }
+  if (!name) {
+    return res.status(404).send({ status: licenseKey.nameRequired, message: t('data-required') });
   }
   const findUserLicenses: ILicense[] = await LicenseModel.find({ [iLicenseKey.user]: req.user._id })
     .populate(SUBSCRIPTION_POPULATE)
@@ -66,6 +69,7 @@ export async function createLicense(req: IRequestUser, res: Response) {
       }
       const newLicense = new LicenseModel({
         [iLicenseKey.user]: req.user._id,
+        [iLicenseKey.name]: name,
         [iLicenseKey.project]: project,
         [iLicenseKey.apiKey]: apiKey,
       });

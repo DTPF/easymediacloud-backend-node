@@ -6,6 +6,7 @@ import { IUser } from './user.interface';
 export interface ILicense {
   _id: string;
   user: IUser;
+  name: string;
   project: string;
   apiKey: string;
   enabled: boolean;
@@ -24,6 +25,7 @@ export interface ILicense {
 export const iLicenseKey = {
   _id: '_id' as keyof typeof Object.keys,
   user: 'user' as keyof typeof Object.keys,
+  name: 'name' as keyof typeof Object.keys,
   project: 'project' as keyof typeof Object.keys,
   apiKey: 'apiKey' as keyof typeof Object.keys,
   enabled: 'enabled' as keyof typeof Object.keys,

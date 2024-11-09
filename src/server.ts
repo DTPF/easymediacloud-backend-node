@@ -1,5 +1,4 @@
 import express, { Express } from 'express';
-import errorMiddleware from './middlewares/error.middleware';
 import { DEFAULT_LANG, productionStage } from './utils/constants';
 import i18next from 'i18next';
 import { englishLang } from './assets/locale/en';
@@ -55,6 +54,5 @@ if (process.env.NODE_ENV === productionStage) {
     res.sendFile(path.resolve('client/index.html'));
   });
 }
-server.use(errorMiddleware);
 
 export default server;

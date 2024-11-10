@@ -33,7 +33,7 @@ server.use(
       directives: {
         defaultSrc: ["'self'", config.dauth.DOMAIN_URL as string],
         objectSrc: ["'none'"],
-        scriptSrc: ["'self'", config.dauth.DOMAIN_URL as string],
+        scriptSrc: ["'self'", config.dauth.DOMAIN_URL as string, 'blob:'],
         styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
         connectSrc: ["'self'", config.dauth.DOMAIN_URL as string],
         imgSrc: ["'self'", 'https:', 'data:'],

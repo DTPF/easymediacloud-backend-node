@@ -267,6 +267,7 @@ export async function refreshLicenseToken(req: IRequestUser, res: Response) {
 export async function getMyLicenses(req: IRequestUser, res: Response) {
   try {
     const findLicenses: ILicense[] = await LicenseModel.find({ [iLicenseKey.user]: req.user._id.toString() })
+      .sort({ [iLicenseKey.createdAt]: -1 })
       .populate(SUBSCRIPTION_POPULATE)
       .lean()
       .exec();

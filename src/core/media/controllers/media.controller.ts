@@ -22,6 +22,7 @@ import SubscriptionModel from '../../subscriptions/models/subscription.model';
 import { LICENSE_POPULATE, SUBSCRIPTION_POPULATE } from '../../modelsConstants';
 import { ISubscription, iSubscriptionKey } from '../../../interfaces/subscription.interface';
 import config from '../../../config/config';
+import heicConvert from 'heic-convert';
 const fs = require('fs-extra');
 const path = require('path');
 const t = i18next.t;
@@ -113,9 +114,32 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
         }
         // ONE MEDIA
         if (req.files.media.length === undefined) {
-          const mediaPath = req.files.media.path;
-          const mediaSize = req.files.media.size;
-          const mediaType = req.files.media.type;
+          let mediaPath = req.files.media.path;
+          let mediaSize = req.files.media.size;
+          let mediaType = req.files.media.type;
+          // Convert HEIC to JPEG
+          if (mediaType === 'image/heic' || mediaType === 'image/heif') {
+            try {
+              const inputBuffer = fs.readFileSync(mediaPath);
+              const outputBuffer = await heicConvert({
+                buffer: inputBuffer,
+                format: 'JPEG',
+                quality: 1,
+              });
+              mediaPath = mediaPath.replace(/\.(heic|heif)$/, '.jpeg');
+              fs.writeFileSync(mediaPath, Buffer.from(outputBuffer));
+              mediaType = 'image/jpeg';
+              mediaSize = fs.statSync(mediaPath).size;
+            } catch (conversionError) {
+              return response
+                .status(500)
+                .send({
+                  status: mediaKey.createMediaError,
+                  message: t('create-media-error'),
+                  err: conversionError,
+                });
+            }
+          }
           if (!mediaPath) {
             fs.unlinkSync(mediaPath);
             return response
@@ -150,13 +174,11 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
             )
               .lean()
               .exec();
-            return response
-              .status(200)
-              .send({
-                status: mediaKey.createMediaSuccess,
-                message: t('create-media-success'),
-                media: mediaSaved,
-              });
+            return response.status(200).send({
+              status: mediaKey.createMediaSuccess,
+              message: t('create-media-success'),
+              media: mediaSaved,
+            });
           } catch (err: any) {
             fs.unlinkSync(mediaPath);
             return response
@@ -177,9 +199,32 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
           let totalSize = 0;
           let totalFiles = 0;
           for (const media of req.files.media) {
-            const mediaPath = media.path;
-            const mediaSize = media.size;
-            const mediaType = media.type;
+            let mediaPath = media.path;
+            let mediaSize = media.size;
+            let mediaType = media.type;
+            // Convert HEIC to JPEG
+            if (mediaType === 'image/heic' || mediaType === 'image/heif') {
+              try {
+                const inputBuffer = fs.readFileSync(mediaPath);
+                const outputBuffer = await heicConvert({
+                  buffer: inputBuffer,
+                  format: 'JPEG',
+                  quality: 1,
+                });
+                mediaPath = mediaPath.replace(/\.(heic|heif)$/, '.jpeg');
+                fs.writeFileSync(mediaPath, Buffer.from(outputBuffer));
+                mediaType = 'image/jpeg';
+                mediaSize = fs.statSync(mediaPath).size;
+              } catch (conversionError) {
+                return response
+                  .status(500)
+                  .send({
+                    status: mediaKey.createMediaError,
+                    message: t('create-media-error'),
+                    err: conversionError,
+                  });
+              }
+            }
             if (!mediaPath) {
               fs.unlinkSync(mediaPath);
               return response
@@ -461,6 +506,7 @@ export async function getMyMedia(req: IRequestUser | any, response: Response) {
   const { index = 0, limit = Infinity } = req.query;
   try {
     const findMedia: IMedia[] = await MediaModel.find({ [iMediaKey.user]: req.user[iUserKey._id] })
+      .sort({ createdAt: -1 })
       .skip(Number(index))
       .limit(Number(limit))
       .lean()
@@ -492,6 +538,7 @@ export async function getMediaByLicense(req: IRequestUser | any, response: Respo
         .send({ status: licenseKey.licenseNotFound, message: t('license-not-found') });
     }
     const findMedia: IMedia[] = await MediaModel.find({ [iMediaKey.license]: licenseId })
+      .sort({ createdAt: -1 })
       .skip(Number(index))
       .limit(Number(limit))
       .lean()

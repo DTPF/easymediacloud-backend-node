@@ -49,21 +49,17 @@ export async function customSubscription(req: IRequestUser, res: Response) {
   }
   // Return error if currency is not valid
   if (currency && typeof currency !== 'string') {
-    return res
-      .status(400)
-      .send({
-        status: subscriptionKey.subscriptionCurrencyInvalid,
-        message: t('subscription_currency_invalid'),
-      });
+    return res.status(400).send({
+      status: subscriptionKey.subscriptionCurrencyInvalid,
+      message: t('subscription_currency_invalid'),
+    });
   }
   // Return error if maxSize is not valid
   if (maxSize && typeof maxSize !== 'number') {
-    return res
-      .status(400)
-      .send({
-        status: subscriptionKey.subscriptionMaxSizeInvalid,
-        message: t('subscription_maxSize_invalid'),
-      });
+    return res.status(400).send({
+      status: subscriptionKey.subscriptionMaxSizeInvalid,
+      message: t('subscription_maxSize_invalid'),
+    });
   }
   // Return error if expire is not valid
   if (expire && typeof expire !== 'string') {
@@ -73,12 +69,10 @@ export async function customSubscription(req: IRequestUser, res: Response) {
   }
   // Return error if enabled is not valid
   if (enabled && typeof enabled !== 'boolean') {
-    return res
-      .status(400)
-      .send({
-        status: subscriptionKey.subscriptionEnableInvalid,
-        message: t('subscription_enabled_invalid'),
-      });
+    return res.status(400).send({
+      status: subscriptionKey.subscriptionEnableInvalid,
+      message: t('subscription_enabled_invalid'),
+    });
   }
   // Convert maxSize to bytes and assign to maxSizeT
   if (maxSize && typeof maxSize === 'number') {
@@ -132,12 +126,10 @@ export async function renewFreeSubscription(req: IRequestUser, res: Response) {
     (findSubscription[iSubscriptionKey.user] as ISubscription['user'])?.toString() !==
     (req.user[iUserKey._id] as IUser['_id']).toString()
   ) {
-    return res
-      .status(403)
-      .send({
-        status: subscriptionKey.subscriptionNotAllowed,
-        message: t('subscription_action_not_allowed'),
-      });
+    return res.status(403).send({
+      status: subscriptionKey.subscriptionNotAllowed,
+      message: t('subscription_action_not_allowed'),
+    });
   }
   try {
     const updateSubscription: ISubscription = await SubscriptionModel.findOneAndUpdate(

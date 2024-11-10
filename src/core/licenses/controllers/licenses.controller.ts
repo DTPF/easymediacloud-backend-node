@@ -18,7 +18,7 @@ const t = i18next.t;
 const fs = require('fs-extra');
 
 export async function createLicense(req: IRequestUser, res: Response) {
-  const { project, name }: { project: string, name: string } = req.body;
+  const { project, name }: { project: string; name: string } = req.body;
   if (!project) {
     return res.status(404).send({ status: licenseKey.projectRequired, message: t('data-required') });
   }
@@ -89,12 +89,10 @@ export async function createLicense(req: IRequestUser, res: Response) {
         });
         const subscriptionSaved: ISubscription = await newSubscription.save();
         if (!subscriptionSaved) {
-          return res
-            .status(404)
-            .send({
-              status: subscriptionKey.createSubscriptionError,
-              message: t('licenses_create-subscription-error'),
-            });
+          return res.status(404).send({
+            status: subscriptionKey.createSubscriptionError,
+            message: t('licenses_create-subscription-error'),
+          });
         }
         // Update license subscription
         const updateLicense: ILicense = await LicenseModel.findOneAndUpdate(
@@ -107,22 +105,18 @@ export async function createLicense(req: IRequestUser, res: Response) {
           .exec();
         const licenseFiltered = await cleanLicenseResponse(updateLicense);
         // Return license
-        return res
-          .status(200)
-          .send({
-            status: licenseKey.createdSuccess,
-            message: t('licenses_created-success'),
-            license: licenseFiltered,
-          });
+        return res.status(200).send({
+          status: licenseKey.createdSuccess,
+          message: t('licenses_created-success'),
+          license: licenseFiltered,
+        });
       } catch (error) {
         if (error) {
-          return res
-            .status(404)
-            .send({
-              status: subscriptionKey.createSubscriptionError,
-              message: t('licenses_create-subscription-error'),
-              error: error,
-            });
+          return res.status(404).send({
+            status: subscriptionKey.createSubscriptionError,
+            message: t('licenses_create-subscription-error'),
+            error: error,
+          });
         }
       }
       // Return license
@@ -274,13 +268,11 @@ export async function getMyLicenses(req: IRequestUser, res: Response) {
     findLicenses.forEach(async (license: ILicense) => {
       await cleanLicenseResponse(license);
     });
-    return res
-      .status(200)
-      .send({
-        status: licenseKey.getLicenseSuccess,
-        message: t('licenses_get-my-licenses_success'),
-        licenses: findLicenses,
-      });
+    return res.status(200).send({
+      status: licenseKey.getLicenseSuccess,
+      message: t('licenses_get-my-licenses_success'),
+      licenses: findLicenses,
+    });
   } catch (err) {
     return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err });
   }
@@ -353,13 +345,11 @@ export async function updateLicenseProject(req: IRequestUser, res: Response) {
     if (!findLicense) {
       return res.status(404).send({ status: licenseKey.licenseNotFound, message: t('licenses_not-found') });
     }
-    return res
-      .status(200)
-      .send({
-        status: licenseKey.updateLicenseSuccess,
-        message: t('licenses_update-license_success'),
-        license: findLicense,
-      });
+    return res.status(200).send({
+      status: licenseKey.updateLicenseSuccess,
+      message: t('licenses_update-license_success'),
+      license: findLicense,
+    });
   } catch (err) {
     return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), error: err });
   }

@@ -131,13 +131,11 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
               mediaType = 'image/jpeg';
               mediaSize = fs.statSync(mediaPath).size;
             } catch (conversionError) {
-              return response
-                .status(500)
-                .send({
-                  status: mediaKey.createMediaError,
-                  message: t('create-media-error'),
-                  err: conversionError,
-                });
+              return response.status(500).send({
+                status: mediaKey.createMediaError,
+                message: t('create-media-error'),
+                err: conversionError,
+              });
             }
           }
           if (!mediaPath) {
@@ -216,13 +214,11 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
                 mediaType = 'image/jpeg';
                 mediaSize = fs.statSync(mediaPath).size;
               } catch (conversionError) {
-                return response
-                  .status(500)
-                  .send({
-                    status: mediaKey.createMediaError,
-                    message: t('create-media-error'),
-                    err: conversionError,
-                  });
+                return response.status(500).send({
+                  status: mediaKey.createMediaError,
+                  message: t('create-media-error'),
+                  err: conversionError,
+                });
               }
             }
             if (!mediaPath) {

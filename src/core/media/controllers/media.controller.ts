@@ -334,7 +334,14 @@ export async function getMedia(req: Request, res: Response) {
   );
   await LicenseModel.findOneAndUpdate(
     { [iLicenseKey._id]: findMedia.license._id },
-    { [iLicenseKey.requestsInDataRange]: filterLicenseRequestsByDataRange.length + 1 }
+    { [iLicenseKey.requestsInDataRange]: filterLicenseRequestsByDataRange.length + 1 },
+    {
+      timestamps:
+        req.headers.referer?.includes(config.app.CLIENT_URL) ||
+        req.headers.origin?.includes(config.app.CLIENT_URL)
+          ? false
+          : true,
+    }
   )
     .lean()
     .exec();
@@ -371,10 +378,23 @@ export async function getMedia(req: Request, res: Response) {
             [iRequestsKey.createdAt]: new Date(),
           },
         },
+      },
+      {
+        timestamps:
+          req.headers.referer?.includes(config.app.CLIENT_URL) ||
+          req.headers.origin?.includes(config.app.CLIENT_URL)
+            ? false
+            : true,
       }
     )
       .lean()
       .exec();
+    if (
+      req.headers.referer?.includes(config.app.CLIENT_URL) ||
+      req.headers.origin?.includes(config.app.CLIENT_URL)
+    ) {
+      return;
+    }
     await MediaModel.findOneAndUpdate(
       { [iMediaKey._id]: findMedia._id },
       { $inc: { [iMediaKey.totalRequests]: 1 } }

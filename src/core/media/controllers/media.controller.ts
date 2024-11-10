@@ -337,6 +337,7 @@ export async function getMedia(req: Request, res: Response) {
     { [iLicenseKey.requestsInDataRange]: filterLicenseRequestsByDataRange.length + 1 },
     {
       timestamps:
+        req.headers.host === config.app.CLIENT_URL ||
         req.headers.referer?.includes(config.app.CLIENT_URL) ||
         req.headers.origin?.includes(config.app.CLIENT_URL)
           ? false
@@ -381,6 +382,7 @@ export async function getMedia(req: Request, res: Response) {
       },
       {
         timestamps:
+          req.headers.host === config.app.CLIENT_URL ||
           req.headers.referer?.includes(config.app.CLIENT_URL) ||
           req.headers.origin?.includes(config.app.CLIENT_URL)
             ? false
@@ -390,6 +392,7 @@ export async function getMedia(req: Request, res: Response) {
       .lean()
       .exec();
     if (
+      req.headers.host === config.app.CLIENT_URL ||
       req.headers.referer?.includes(config.app.CLIENT_URL) ||
       req.headers.origin?.includes(config.app.CLIENT_URL)
     ) {

@@ -293,6 +293,7 @@ export async function postMedia(req: IRequestUser | any, response: Response) {
 
 export async function getMedia(req: Request, res: Response) {
   const { mainFolder, project, folders, media } = req.params;
+  const { source } = req.query; // Source: emc
   // Find media
   const findMedia: IMedia = await MediaModel.findOne({ [iMediaKey.fileName]: media })
     .populate(LICENSE_POPULATE)
@@ -332,20 +333,17 @@ export async function getMedia(req: Request, res: Response) {
   const filterLicenseRequestsByDataRange = findMedia.license.requests?.filter(
     (request: TRequests) => request.createdAt > dataRange
   );
-  await LicenseModel.findOneAndUpdate(
-    { [iLicenseKey._id]: findMedia.license._id },
-    { [iLicenseKey.requestsInDataRange]: filterLicenseRequestsByDataRange.length + 1 },
-    {
-      timestamps:
-        req.headers.host === config.app.CLIENT_URL ||
-        req.headers.referer?.includes(config.app.CLIENT_URL) ||
-        req.headers.origin?.includes(config.app.CLIENT_URL)
-          ? false
-          : true,
-    }
-  )
-    .lean()
-    .exec();
+  if (!source || source !== 'emc') {
+    await LicenseModel.findOneAndUpdate(
+      { [iLicenseKey._id]: findMedia.license._id },
+      { [iLicenseKey.requestsInDataRange]: filterLicenseRequestsByDataRange.length + 1 },
+      {
+        timestamps: false,
+      }
+    )
+      .lean()
+      .exec();
+  }
   // Break if license is over max requests
   if (filterLicenseRequestsByDataRange.length + 1 >= findSubscription.maxRequests) {
     return res
@@ -367,43 +365,33 @@ export async function getMedia(req: Request, res: Response) {
   } catch (err) {
     return res.status(500).send({ status: responseKey.serverError, message: t('server-error'), err: err });
   } finally {
-    const ipInfo = getIP(req);
-    await LicenseModel.findOneAndUpdate(
-      { [iLicenseKey._id]: findMedia.license._id },
-      {
-        $inc: { [iLicenseKey.totalRequests]: 1 },
-        $push: {
-          [iLicenseKey.requests]: {
-            [iRequestsKey.media]: findMedia._id,
-            [iRequestsKey.reqIp]: ipInfo.clientIp,
-            [iRequestsKey.createdAt]: new Date(),
+    if (!source || source !== 'emc') {
+      const ipInfo = getIP(req);
+      await LicenseModel.findOneAndUpdate(
+        { [iLicenseKey._id]: findMedia.license._id },
+        {
+          $inc: { [iLicenseKey.totalRequests]: 1 },
+          $push: {
+            [iLicenseKey.requests]: {
+              [iRequestsKey.media]: findMedia._id,
+              [iRequestsKey.reqIp]: ipInfo.clientIp,
+              [iRequestsKey.createdAt]: new Date(),
+            },
           },
         },
-      },
-      {
-        timestamps:
-          req.headers.host === config.app.CLIENT_URL ||
-          req.headers.referer?.includes(config.app.CLIENT_URL) ||
-          req.headers.origin?.includes(config.app.CLIENT_URL)
-            ? false
-            : true,
-      }
-    )
-      .lean()
-      .exec();
-    if (
-      req.headers.host === config.app.CLIENT_URL ||
-      req.headers.referer?.includes(config.app.CLIENT_URL) ||
-      req.headers.origin?.includes(config.app.CLIENT_URL)
-    ) {
-      return;
+        {
+          timestamps: false,
+        }
+      )
+        .lean()
+        .exec();
+      await MediaModel.findOneAndUpdate(
+        { [iMediaKey._id]: findMedia._id },
+        { $inc: { [iMediaKey.totalRequests]: 1 } }
+      )
+        .lean()
+        .exec();
     }
-    await MediaModel.findOneAndUpdate(
-      { [iMediaKey._id]: findMedia._id },
-      { $inc: { [iMediaKey.totalRequests]: 1 } }
-    )
-      .lean()
-      .exec();
   }
 }
 

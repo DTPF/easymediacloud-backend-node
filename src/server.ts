@@ -4,14 +4,14 @@ import i18next from 'i18next';
 import { englishLang } from './assets/locale/en';
 import { spanishLang } from './assets/locale/es';
 import config from './config/config';
+import licenseApi from './core/licenses/router/licenses.router';
+import mediaApi from './core/media/router/media.router';
+import subscriptionApi from './core/subscriptions/router/subscriptions.router';
 const helmet = require('helmet');
 const cors = require('cors');
 const server: Express = express();
 const path = require('path');
 // Routes
-const mediaRoutes = require('./core/media/router/media.router');
-const licensesRoutes = require('./core/licenses/router/licenses.router');
-const subscriptionRoutes = require('./core/subscriptions/router/subscriptions.router');
 
 i18next.init({
   lng: DEFAULT_LANG,
@@ -42,9 +42,9 @@ server.use(
     },
   })
 );
-server.use(`/api/${config.app.API_VERSION}`, mediaRoutes);
-server.use(`/api/${config.app.API_VERSION}`, licensesRoutes);
-server.use(`/api/${config.app.API_VERSION}`, subscriptionRoutes);
+server.use(`/api/${config.app.API_VERSION}`, mediaApi);
+server.use(`/api/${config.app.API_VERSION}`, licenseApi);
+server.use(`/api/${config.app.API_VERSION}`, subscriptionApi);
 if (process.env.NODE_ENV === productionStage) {
   server.get('/client/service-worker.js', (req, res) => {
     res.sendFile(path.resolve(__dirname, 'client', 'service-worker.js'));

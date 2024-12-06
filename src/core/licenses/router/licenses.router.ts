@@ -1,9 +1,9 @@
 import { ensure_admin, dauth_md, is_verified } from '../../../middlewares';
 import * as controller from '../controllers/licenses.controller';
 const express = require('express');
-const api = express.Router();
+const licenseApi = express.Router();
 
-api
+licenseApi
   .post('/create-license', [dauth_md, is_verified], controller.createLicense)
   .get('/get-license/:licenseId', [dauth_md, is_verified], controller.getLicenseById)
   .get('/get-license-token/:licenseId', [dauth_md, is_verified], controller.getLicenseToken)
@@ -19,4 +19,4 @@ api
   .patch('/update-license-project/:licenseId', [dauth_md, is_verified], controller.updateLicenseProject)
   .delete('/delete-license/:licenseId', [dauth_md, is_verified], controller.deleteLicense);
 
-module.exports = api;
+export default licenseApi;

@@ -4,7 +4,7 @@ export const userRole = 'user';
 export const developmentStage = 'development';
 export const productionStage = 'production';
 export const uploadsAvatarPath = './uploads/avatar/';
-export const mediaFolderPath = 'media';
+export const mediaFolderPath = 'uploads/media';
 // Languages
 export const ES_lang = 'es';
 export const EN_lang = 'en';

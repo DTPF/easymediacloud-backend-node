@@ -4,6 +4,5 @@ node_modules
 client_old
 src_old
 dist
-uploads/avatar/*
+uploads/*
 .vscode
-# media/*
